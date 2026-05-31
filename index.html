@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Warrior Trading Assistant — User Guide</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b0f14">
+<meta name="description" content="User guide for the Warrior Trading Assistant: a personal desktop app that applies Ross Cameron's momentum day-trading strategy in real time — how it's used and how it operates, as built (Phase 3).">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WT Assistant">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN SYSTEM  (shared with the Warrior Method concept guide)
+   ============================================================ */
+:root {
+  --bg:        #0b0f14;
+  --bg-soft:   #0f141b;
+  --surface:   #141b24;
+  --surface-2: #1a232e;
+  --surface-3: #212c39;
+  --line:      #263241;
+  --line-soft: #1b2531;
+  --ink:       #e9eef4;
+  --ink-soft:  #abb6c3;
+  --ink-faint: #6c7a8a;
+
+  --green:     #34d399;
+  --green-deep:#0c4f3c;
+  --green-soft:#0f2a23;
+  --red:       #f8717f;
+  --red-deep:  #5c1a23;
+  --red-soft:  #271419;
+  --gold:      #f0b429;
+  --gold-soft: #2a2210;
+  --blue:      #5b9dff;
+  --blue-soft: #0f1e33;
+  --violet:    #b08bff;
+  --violet-soft:#1c1530;
+  --teal:      #2dd4bf;
+
+  --accent:    var(--gold);
+  --link:      var(--blue);
+
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --sans:  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono:  "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+  --nav-w: 320px;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 18px 50px -22px rgba(0,0,0,.7);
+  --shadow-soft: 0 8px 28px -16px rgba(0,0,0,.6);
+
+  --c-up:   var(--green);
+  --c-down: var(--red);
+}
+
+html[data-theme="light"] {
+  --bg:        #f6f4ee;
+  --bg-soft:   #efece3;
+  --surface:   #ffffff;
+  --surface-2: #faf8f2;
+  --surface-3: #f0ede4;
+  --line:      #e0dccf;
+  --line-soft: #ebe7db;
+  --ink:       #1c2530;
+  --ink-soft:  #4f5b68;
+  --ink-faint: #8a96a3;
+
+  --green:     #0f9d6b;
+  --green-deep:#bff0dc;
+  --green-soft:#e7f7ef;
+  --red:       #d6455a;
+  --red-deep:  #f6d2d8;
+  --red-soft:  #fbedef;
+  --gold:      #b07d09;
+  --gold-soft: #f6edcf;
+  --blue:      #2f6fd6;
+  --blue-soft: #e6eefb;
+  --violet:    #6d49c9;
+  --violet-soft:#efe9fb;
+  --teal:      #0d9488;
+
+  --accent:    #b07d09;
+  --link:      #2f6fd6;
+
+  --shadow: 0 18px 50px -26px rgba(40,40,60,.28);
+  --shadow-soft: 0 8px 28px -18px rgba(40,40,60,.22);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.72;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background .4s ease, color .4s ease;
+}
+
+/* ---------- reading progress bar ---------- */
+#progress {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+  background: linear-gradient(90deg, var(--gold), var(--teal));
+  z-index: 200; transition: width .12s linear;
+}
+
+/* ---------- layout ---------- */
+.layout { display: flex; min-height: 100vh; }
+
+/* ---------- sidebar nav ---------- */
+#sidebar {
+  width: var(--nav-w);
+  flex: 0 0 var(--nav-w);
+  position: sticky; top: 0; align-self: flex-start;
+  height: 100vh; overflow-y: auto;
+  background: var(--bg-soft);
+  border-right: 1px solid var(--line);
+  padding: 26px 0 60px;
+  scrollbar-width: thin; scrollbar-color: var(--line) transparent;
+}
+#sidebar::-webkit-scrollbar { width: 8px; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+.brand { padding: 0 26px 20px; border-bottom: 1px solid var(--line-soft); margin-bottom: 14px; }
+.brand .mark {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--accent); font-weight: 700;
+}
+.brand .name {
+  font-family: var(--serif); font-weight: 600; font-size: 21px;
+  line-height: 1.2; margin-top: 7px; color: var(--ink);
+}
+.brand .sub { font-size: 12.5px; color: var(--ink-faint); margin-top: 6px; }
+
+nav.toc { padding: 0 14px; }
+nav.toc .part {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--ink-faint);
+  padding: 18px 12px 7px; font-weight: 700;
+}
+nav.toc a {
+  display: block; text-decoration: none; color: var(--ink-soft);
+  font-size: 13.5px; line-height: 1.4; padding: 7px 12px; border-radius: 8px;
+  border-left: 2px solid transparent; transition: all .15s ease;
+}
+nav.toc a:hover { background: var(--surface); color: var(--ink); }
+nav.toc a.active {
+  color: var(--ink); background: var(--surface-2);
+  border-left-color: var(--accent); font-weight: 600;
+}
+nav.toc a .n {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+  margin-right: 8px;
+}
+nav.toc a.active .n { color: var(--accent); }
+
+/* ---------- main column ---------- */
+main { flex: 1 1 auto; min-width: 0; }
+.wrap { max-width: 820px; margin: 0 auto; padding: 0 40px 140px; }
+@media (max-width: 1180px){ .wrap { max-width: 760px; } }
+
+/* ---------- topbar (mobile) ---------- */
+#topbar {
+  display: none; position: sticky; top: 0; z-index: 120;
+  align-items: center; gap: 14px;
+  padding: 12px 18px; background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+}
+#topbar .name { font-family: var(--serif); font-weight: 600; font-size: 16px; }
+.iconbtn {
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink);
+  width: 40px; height: 40px; border-radius: 10px; cursor: pointer;
+  display: inline-grid; place-items: center; font-size: 17px; transition: all .15s ease;
+}
+.iconbtn:hover { background: var(--surface-2); border-color: var(--line); }
+
+/* theme toggle floating */
+#themetoggle {
+  position: fixed; bottom: 22px; right: 22px; z-index: 150;
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink);
+  height: 46px; padding: 0 16px; border-radius: 30px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 9px; font-size: 13px;
+  font-family: var(--mono); letter-spacing: .04em; box-shadow: var(--shadow-soft);
+  transition: all .2s ease;
+}
+#themetoggle:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero { padding: 92px 0 30px; }
+.hero .eyebrow {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .26em;
+  text-transform: uppercase; color: var(--accent); font-weight: 700;
+}
+.hero h1 {
+  font-family: var(--serif); font-weight: 600;
+  font-size: clamp(40px, 7vw, 68px); line-height: 1.02;
+  letter-spacing: -0.018em; margin: 20px 0 0;
+}
+.hero h1 em { font-style: italic; color: var(--accent); }
+.hero .deck {
+  font-size: clamp(18px, 2.4vw, 22px); line-height: 1.5; color: var(--ink-soft);
+  max-width: 32em; margin: 26px 0 0; font-weight: 400;
+}
+.hero .meta-chips { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 10px; }
+
+.readnote {
+  margin: 46px 0 0; padding: 22px 24px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  font-size: 14.5px; color: var(--ink-soft); box-shadow: var(--shadow-soft);
+}
+.readnote b { color: var(--ink); font-weight: 600; }
+.readnote .legend { display: flex; flex-wrap: wrap; gap: 16px 22px; margin-top: 14px; }
+.readnote .legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+.dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+/* ============================================================
+   PART DIVIDERS + SECTIONS
+   ============================================================ */
+.part-divider { margin: 100px 0 10px; padding-top: 24px; border-top: 1px solid var(--line); }
+.part-divider .pn {
+  font-family: var(--mono); font-size: 13px; letter-spacing: .3em;
+  color: var(--accent); font-weight: 700; text-transform: uppercase;
+}
+.part-divider h2 {
+  font-family: var(--serif); font-weight: 600; font-size: clamp(30px, 4.6vw, 46px);
+  letter-spacing: -0.015em; line-height: 1.08; margin: 14px 0 0;
+}
+.part-divider .pd-deck { font-size: 18px; color: var(--ink-soft); margin: 16px 0 0; max-width: 34em; }
+
+section.sec { padding-top: 66px; margin-top: -36px; }
+section.sec > .kicker {
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--ink-faint); font-weight: 700;
+}
+section.sec > h3 {
+  font-family: var(--serif); font-weight: 600; font-size: clamp(26px, 3.4vw, 34px);
+  line-height: 1.14; letter-spacing: -0.012em; margin: 10px 0 0;
+}
+.lede { font-size: 19.5px; line-height: 1.62; color: var(--ink); margin: 22px 0 0; font-weight: 400; }
+.lede em, p em, li em { font-style: italic; }
+.lede strong, p strong, li strong { font-weight: 600; color: var(--ink); }
+
+p { margin: 20px 0 0; }
+.sec h4 {
+  font-family: var(--sans); font-weight: 700; font-size: 16px; letter-spacing: .01em;
+  margin: 38px 0 0; color: var(--ink);
+}
+ul, ol { margin: 16px 0 0; padding-left: 1.3em; }
+li { margin: 9px 0 0; }
+li::marker { color: var(--ink-faint); }
+a.link { color: var(--link); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--link) 40%, transparent); }
+a.link:hover { border-bottom-color: var(--link); }
+
+hr.soft { border: none; border-top: 1px solid var(--line-soft); margin: 40px 0; }
+
+/* ============================================================
+   COMPONENTS
+   ============================================================ */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .03em;
+  padding: 5px 11px; border-radius: 30px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-soft); white-space: nowrap;
+}
+.chip.green { color: var(--green); border-color: color-mix(in srgb, var(--green) 40%, transparent); background: var(--green-soft); }
+.chip.red   { color: var(--red);   border-color: color-mix(in srgb, var(--red) 40%, transparent);   background: var(--red-soft); }
+.chip.gold  { color: var(--gold);  border-color: color-mix(in srgb, var(--gold) 40%, transparent);  background: var(--gold-soft); }
+.chip.blue  { color: var(--blue);  border-color: color-mix(in srgb, var(--blue) 40%, transparent);  background: var(--blue-soft); }
+.chip.violet{ color: var(--violet);border-color: color-mix(in srgb, var(--violet) 40%, transparent);background: var(--violet-soft); }
+
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 26px 28px; margin: 30px 0 0;
+  box-shadow: var(--shadow-soft);
+}
+.card > h4:first-child, .card > .card-h:first-child { margin-top: 0; }
+.card-h { font-family: var(--sans); font-weight: 700; font-size: 16px; margin: 0 0 4px; }
+.card p { margin-top: 6px; }
+
+.grid { display: grid; gap: 16px; margin: 28px 0 0; }
+.grid.g2 { grid-template-columns: repeat(2, 1fr); }
+.grid.g3 { grid-template-columns: repeat(3, 1fr); }
+.grid.g4 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 760px){ .grid.g2, .grid.g3, .grid.g4 { grid-template-columns: 1fr; } }
+
+/* rule / principle box */
+.rule {
+  position: relative; background: var(--surface);
+  border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm); padding: 20px 22px 20px 24px; margin: 26px 0 0;
+}
+.rule .rule-tag {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700;
+}
+.rule .rule-body { margin-top: 7px; font-size: 16px; line-height: 1.62; }
+.rule.gate { border-left-color: var(--red); }
+.rule.gate .rule-tag { color: var(--red); }
+.rule.good { border-left-color: var(--green); }
+.rule.good .rule-tag { color: var(--green); }
+
+/* callouts */
+.callout {
+  display: grid; grid-template-columns: 26px 1fr; gap: 14px;
+  border-radius: var(--radius-sm); padding: 18px 20px; margin: 26px 0 0;
+  border: 1px solid var(--line); background: var(--surface); font-size: 15.5px;
+}
+.callout .ic { font-size: 18px; line-height: 1.5; }
+.callout .ct-title { font-weight: 700; font-size: 13px; letter-spacing: .03em; text-transform: uppercase; margin-bottom: 3px; }
+.callout p:first-of-type { margin-top: 0; }
+.callout.key   { border-color: color-mix(in srgb, var(--gold) 45%, transparent);  background: var(--gold-soft); }
+.callout.key   .ct-title { color: var(--gold); }
+.callout.tip   { border-color: color-mix(in srgb, var(--teal) 40%, transparent);  background: color-mix(in srgb, var(--teal) 8%, var(--surface)); }
+.callout.tip   .ct-title { color: var(--teal); }
+.callout.warn  { border-color: color-mix(in srgb, var(--gold) 45%, transparent);  background: var(--gold-soft); }
+.callout.warn  .ct-title { color: var(--gold); }
+.callout.danger{ border-color: color-mix(in srgb, var(--red) 45%, transparent);   background: var(--red-soft); }
+.callout.danger .ct-title { color: var(--red); }
+
+/* code */
+pre.code {
+  font-family: var(--mono); font-size: 13.5px; line-height: 1.62;
+  background: var(--bg-soft); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 16px 18px; margin: 24px 0 0;
+  overflow-x: auto; color: var(--ink); white-space: pre;
+}
+pre.code .cmt { color: var(--ink-faint); }
+pre.code .kw  { color: var(--teal); font-weight: 500; }
+code.inl {
+  font-family: var(--mono); font-size: 0.86em; background: var(--surface-2);
+  border: 1px solid var(--line-soft); border-radius: 5px; padding: 1px 6px; color: var(--ink);
+}
+
+/* tables */
+.tablewrap { margin: 28px 0 0; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+table.data { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 460px; }
+table.data th {
+  text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); font-weight: 700;
+  padding: 13px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line);
+}
+table.data td { padding: 13px 16px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+table.data tr:last-child td { border-bottom: none; }
+table.data td.mono, table.data th.mono { font-family: var(--mono); }
+
+/* status pills (recommendation states) */
+.pill { font-family: var(--mono); font-weight: 700; padding: 2px 9px; border-radius: 5px; font-size: 11.5px; letter-spacing: .03em; white-space: nowrap; }
+.pill.permit  { background: var(--green-soft); color: var(--green); }
+.pill.scalein { background: var(--blue-soft);  color: var(--blue); }
+.pill.scaleout{ background: var(--violet-soft);color: var(--violet); }
+.pill.block   { background: var(--red-soft);   color: var(--red); }
+.pill.warm    { background: var(--gold-soft);  color: var(--gold); }
+
+/* stat figures */
+.statrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin: 28px 0 0; }
+.stat {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 20px; text-align: left;
+}
+.stat .big {
+  font-family: var(--serif); font-weight: 600; font-size: 38px; line-height: 1;
+  color: var(--ink); letter-spacing: -0.01em;
+}
+.stat .big.green { color: var(--green); }
+.stat .big.red { color: var(--red); }
+.stat .big.gold { color: var(--gold); }
+.stat .big.blue { color: var(--blue); }
+.stat .lbl { margin-top: 9px; font-size: 13px; color: var(--ink-soft); line-height: 1.4; }
+
+/* takeaway strip */
+.takeaway {
+  margin: 36px 0 0; padding: 20px 24px; border-radius: var(--radius-sm);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;
+}
+.takeaway .tk-label {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; writing-mode: vertical-rl; transform: rotate(180deg);
+  align-self: stretch; display: grid; place-items: center;
+}
+.takeaway .tk-body { font-size: 16px; line-height: 1.6; }
+.takeaway .tk-body strong { color: var(--ink); }
+
+/* sequence / flow steps */
+.flow { margin: 28px 0 0; display: grid; gap: 12px; }
+.flow .step {
+  display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: start;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 16px 18px;
+}
+.flow .step .num {
+  font-family: var(--mono); font-weight: 700; font-size: 15px; color: var(--bg);
+  background: var(--accent); width: 30px; height: 30px; border-radius: 8px;
+  display: grid; place-items: center;
+}
+.flow .step .stext { font-size: 15px; line-height: 1.55; }
+.flow .step .stext b { color: var(--ink); }
+
+/* pipeline diagram */
+.pipe { margin: 30px 0 0; display: grid; gap: 10px; }
+.pipe .row {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 14px 18px; font-family: var(--mono); font-size: 13.5px; color: var(--ink);
+  display: flex; align-items: center; gap: 12px;
+}
+.pipe .row .ar { color: var(--accent); font-weight: 700; }
+.pipe .row.exit { border-color: color-mix(in srgb, var(--red) 30%, var(--line)); }
+
+/* two-column compare */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0 0; }
+@media (max-width: 700px){ .compare { grid-template-columns: 1fr; } }
+.compare .col { border-radius: var(--radius-sm); padding: 20px; border: 1px solid var(--line); }
+.compare .col.good { background: var(--green-soft); border-color: color-mix(in srgb, var(--green) 35%, transparent); }
+.compare .col.bad  { background: var(--red-soft);   border-color: color-mix(in srgb, var(--red) 35%, transparent); }
+.compare .col h5 { margin: 0 0 8px; font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+.compare .col.good h5 { color: var(--green); }
+.compare .col.bad h5 { color: var(--red); }
+.compare .col ul { margin-top: 6px; }
+.compare .col li { font-size: 14.5px; }
+
+/* footer */
+.footer { margin-top: 110px; padding-top: 30px; border-top: 1px solid var(--line);
+  font-size: 13.5px; color: var(--ink-faint); }
+.footer .big { font-family: var(--serif); font-size: 22px; color: var(--ink-soft); font-style: italic; line-height: 1.45; }
+
+/* responsive nav behavior */
+@media (max-width: 980px){
+  #topbar { display: flex; }
+  #themetoggle { display: none; }
+  #sidebar {
+    position: fixed; left: 0; top: 0; z-index: 130;
+    transform: translateX(-100%); transition: transform .28s ease; box-shadow: var(--shadow);
+  }
+  #sidebar.open { transform: translateX(0); }
+  #scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 125; opacity: 0;
+    pointer-events: none; transition: opacity .28s ease; }
+  #scrim.show { opacity: 1; pointer-events: auto; }
+  .wrap { padding: 0 22px 100px; }
+  .hero { padding: 40px 0 20px; }
+}
+@media (min-width: 981px){ #scrim { display: none; } }
+
+/* ============================================================
+   PRINT  (keeps the trader aesthetic; used for the PDF)
+   ============================================================ */
+@page { size: A4; margin: 14mm 13mm; }
+@media print {
+  html, body { background: var(--bg) !important; }
+  #sidebar, #topbar, #themetoggle, #progress, #scrim { display: none !important; }
+  .layout { display: block; }
+  main { display: block; }
+  .wrap { max-width: 100%; margin: 0; padding: 0; }
+  body { font-size: 11.5px; line-height: 1.55; }
+  .hero { padding: 6px 0 10px; }
+  .hero h1 { font-size: 40px; }
+  .hero .deck { font-size: 15px; }
+  *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .part-divider { break-before: page; margin-top: 0; }
+  .card, .callout, .rule, .takeaway, .tablewrap, pre.code, .flow .step, .compare, .stat, .pipe .row, figure { break-inside: avoid; }
+  section.sec { padding-top: 24px; margin-top: 0; }
+  a.link { color: var(--link); border: none; }
+  .shadow, .card, .readnote { box-shadow: none !important; }
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<div id="topbar">
+  <button class="iconbtn" id="menubtn" aria-label="Open navigation">☰</button>
+  <span class="name">Warrior Trading Assistant</span>
+  <button class="iconbtn" id="themebtn2" style="margin-left:auto" aria-label="Toggle theme">◐</button>
+</div>
+
+<div id="scrim"></div>
+
+<div class="layout">
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="mark">User Guide · Phase 3</div>
+      <div class="name">Warrior Trading Assistant</div>
+      <div class="sub">How the program is used and how it operates, as currently built. The human companion to <code class="inl">CLAUDE.md</code>.</div>
+    </div>
+    <nav class="toc" id="toc">
+      <div class="part">I · Orientation</div>
+      <a href="#s-what"><span class="n">1.1</span>What This Program Is</a>
+      <a href="#s-built"><span class="n">1.2</span>Built vs. Not Built</a>
+
+      <div class="part">II · Getting Started</div>
+      <a href="#s-prereq"><span class="n">2.1</span>Prerequisites &amp; Setup</a>
+      <a href="#s-launch"><span class="n">2.2</span>Launching the Program</a>
+      <a href="#s-providers"><span class="n">2.3</span>Manual vs. IBKR</a>
+
+      <div class="part">III · The Interface</div>
+      <a href="#s-screen"><span class="n">3.1</span>The Screen, Panel by Panel</a>
+
+      <div class="part">IV · Under the Hood</div>
+      <a href="#s-pipeline"><span class="n">4.1</span>The Pipeline &amp; Gate Stack</a>
+      <a href="#s-setups"><span class="n">4.2</span>The Entry Setups</a>
+      <a href="#s-exits"><span class="n">4.3</span>The Exit Engine</a>
+      <a href="#s-sizing"><span class="n">4.4</span>Position Sizing</a>
+
+      <div class="part">V · Trading With It</div>
+      <a href="#s-session"><span class="n">5.1</span>A Session, Start to Finish</a>
+      <a href="#s-risk"><span class="n">5.2</span>Risk Controls &amp; Guardrails</a>
+
+      <div class="part">VI · Tools &amp; Limits</div>
+      <a href="#s-backtest"><span class="n">6.1</span>The Backtest Harness</a>
+      <a href="#s-limits"><span class="n">6.2</span>Limitations</a>
+      <a href="#s-trouble"><span class="n">6.3</span>Troubleshooting</a>
+      <a href="#s-files"><span class="n">6.4</span>Reference — Key Files</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="wrap">
+
+      <!-- ====================== HERO ====================== -->
+      <header class="hero">
+        <div class="eyebrow">User Guide · Phase 3 Runtime</div>
+        <h1>Warrior Trading <em>Assistant</em></h1>
+        <p class="deck">A personal desktop assistant for applying Ross Cameron's Warrior day-trading strategy in real time — what it actually does today, how each screen works, and exactly how it decides what to recommend.</p>
+        <div class="meta-chips">
+          <span class="chip green">▲ Long-only</span>
+          <span class="chip">Small-cap momentum · $2–$20</span>
+          <span class="chip">It proposes — you execute</span>
+          <span class="chip gold">Reduce risk first</span>
+        </div>
+
+        <div class="readnote">
+          <b>How to read this guide.</b> It describes <b>what is actually built today</b>, not the eventual vision. Where something is planned-but-not-wired, it says so plainly (see <a href="#s-limits" class="link">§6.2</a>). The authoritative engineering reference is <code class="inl">CLAUDE.md</code>; this is the human-facing companion to it. The colors below carry meaning throughout:
+          <div class="legend">
+            <span><i class="dot" style="background:var(--green)"></i> permitted / go / built</span>
+            <span><i class="dot" style="background:var(--red)"></i> blocked / hard stop / risk</span>
+            <span><i class="dot" style="background:var(--gold)"></i> a caution or value that matters</span>
+            <span><i class="dot" style="background:var(--blue)"></i> a tool or context</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ====================== PART I ====================== -->
+      <div class="part-divider" id="part-1">
+        <div class="pn">Part I</div>
+        <h2>Orientation</h2>
+        <p class="pd-deck">What the program is for, the hard constraints baked into it, and — most importantly — an honest map of what is built today versus what is deliberately deferred.</p>
+      </div>
+
+      <section class="sec" id="s-what">
+        <div class="kicker">1.1 — The Thesis</div>
+        <h3>What This Program Is</h3>
+        <p class="lede">A personal desktop assistant for applying <strong>Ross Cameron's Warrior day-trading strategy</strong> while you trade. It watches the market in real time, finds the kind of volatile small-cap momentum stocks Ross trades, checks each potential trade against his risk rules, and surfaces <strong>buy/sell recommendations and exit management</strong> on screen.</p>
+
+        <p>Two principles shape everything it does:</p>
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-h">1 · Reduce risk first</div>
+            <p>Every design choice favors protecting capital over chasing upside, while still generally following Ross's strategy.</p>
+          </div>
+          <div class="card">
+            <div class="card-h">2 · Be easy to use</div>
+            <p>One native window, plain-language recommendations, and a single most-important number always in view.</p>
+          </div>
+        </div>
+
+        <h4>Hard constraints baked into the program</h4>
+        <div class="rule good">
+          <div class="rule-tag">Constraint · Long-only</div>
+          <div class="rule-body">It only ever recommends <strong>buying</strong> (then selling to exit). Bear patterns — double tops, head-and-shoulders, breakdowns — are used <strong>only as exit signals</strong>, never as entries.</div>
+        </div>
+        <div class="rule gate">
+          <div class="rule-tag">Constraint · It proposes, you execute</div>
+          <div class="rule-body">The program <strong>never places orders.</strong> It recommends; you decide and place the trade in your own broker, then tell the program what you did (or, with IBKR, it reads your fills live). A deliberate safety design — <strong>you are always the one pulling the trigger.</strong></div>
+        </div>
+        <div class="rule">
+          <div class="rule-tag">Constraint · Small-cap momentum, short holds</div>
+          <div class="rule-body">$2–$20 stocks, up big on the day, low float, high relative volume — held <strong>seconds to a few minutes.</strong></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s-built">
+        <div class="kicker">1.2 — Read This First</div>
+        <h3>What's Built vs. What Isn't</h3>
+        <p class="lede">The single most important thing to understand before trusting the program: the recommendations come from a <strong>deterministic rules engine</strong> today — not from Claude reasoning live over the data. That brain layer is parked. Here is the honest map.</p>
+
+        <div class="compare">
+          <div class="col good">
+            <h5>✓ BUILT AND WORKING</h5>
+            <ul>
+              <li>Per-user <b>config layer</b> (your risk anchors)</li>
+              <li>Two <b>P&amp;L providers</b>: Manual entry &amp; <b>IBKR</b> paper trading (TWS API)</li>
+              <li><b>Scanner</b> — Five-Pillars candidate scan (Massive), true <b>float</b> via Ortex, <b>country</b> via SEC EDGAR</li>
+              <li><b>~18 entry-setup detectors</b> (micro pullback, bull flag, ABCD, VWAP reclaim, PM high/pivot breaks, dip trade…)</li>
+              <li><b>Hard risk gates</b> + <b>cautionary flags</b></li>
+              <li><b>Exit engine</b> (scale-out + B/E stop, every-tick catastrophic stop, loss-cap/goal, MACD flip, MA break, bear-pattern exits)</li>
+              <li><b>Position sizing</b> (risk-based, regime-aware)</li>
+              <li><b>Market-regime</b> classification</li>
+              <li>The <b>desktop UI</b> (dashboard, scanner board, recs feed, exits panel, ticker tape)</li>
+              <li>An offline <b>backtest harness</b></li>
+            </ul>
+          </div>
+          <div class="col bad">
+            <h5>✗ NOT YET BUILT / DEFERRED</h5>
+            <ul>
+              <li>The <b>Claude "brain"</b> — recs are from the rules engine, not live Claude reasoning. Parked.</li>
+              <li><b>Sub-second print-trigger execution</b> — the live tick feed isn't wired, so the engine runs in <b>bar-close mode</b> (1-min closes). The every-tick catastrophic stop is the exception.</li>
+              <li><b>Hijack-state &amp; rehab-state gates</b> — in doctrine but not live; your <b>broker-side caps are the substitute.</b></li>
+              <li><b>News pillar</b> — disabled (no vendor wired). The four price/volume/float pillars carry the scan.</li>
+              <li><b>Level 2 / depth-of-market</b> — a few setups lean on tape in doctrine; the app runs them on bar-structure proxies for now.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <div class="ic">⚠</div>
+          <div>
+            <div class="ct-title">Exits are the least live-validated subsystem</div>
+            <p>They're unit-tested and internally consistent, but have had the least real-market exposure. Watch them closely on your first live mornings.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== PART II ====================== -->
+      <div class="part-divider" id="part-2">
+        <div class="pn">Part II</div>
+        <h2>Getting Started</h2>
+        <p class="pd-deck">One-time setup, how to launch, and the single decision that changes how the program tracks your money: Manual entry versus a live Interactive Brokers connection.</p>
+      </div>
+
+      <section class="sec" id="s-prereq">
+        <div class="kicker">2.1 — One-Time Setup</div>
+        <h3>Prerequisites &amp; Setup</h3>
+        <p class="lede">You need a Windows 11 machine, Python 3.12, and the <code class="inl">uv</code> package manager. Market data comes from Massive; Ortex and IBKR are optional.</p>
+
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-h">Required</div>
+            <p><b>Windows 11</b>, <b>Python 3.12</b>, <b><a href="https://docs.astral.sh/uv/" class="link">uv</a></b>, and a <b>Massive</b> (formerly Polygon) Stocks Advanced data subscription.</p>
+          </div>
+          <div class="card">
+            <div class="card-h">Optional</div>
+            <p><b>Ortex</b> for true float, and <b>Interactive Brokers</b> for live P&amp;L / positions. Without them the scan still runs on four pillars and you use the Manual provider.</p>
+          </div>
+        </div>
+
+        <h4>Install dependencies</h4>
+        <pre class="code"><span class="cmt"># from the project root</span>
+uv sync                       <span class="cmt"># install dependencies into .venv</span></pre>
+
+        <h4>Create your config</h4>
+        <div class="flow">
+          <div class="step"><div class="num">1</div><div class="stext">Copy <code class="inl">config/schema.example.yaml</code> → <code class="inl">config/user.yaml</code>. <b>That file is gitignored</b> — your API keys never get committed.</div></div>
+          <div class="step"><div class="num">2</div><div class="stext">Fill in your <b>anchors</b> — the values Ross's ratio-based rules need (full position size, daily goal, max daily loss, your "barely-feel-it" per-trade loss, experience tier). See the table below.</div></div>
+          <div class="step"><div class="num">3</div><div class="stext">Fill in vendor keys: <code class="inl">massive.api_key</code>, and optionally <code class="inl">ortex.api_key</code>.</div></div>
+          <div class="step"><div class="num">4</div><div class="stext">If using IBKR, set the <code class="inl">ibkr</code> section (host / port / client_id). <b>Port 7497 is paper trading</b>; 7496 is live. Use paper until you trust it.</div></div>
+        </div>
+
+        <h4>The anchor values</h4>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>Anchor</th><th>What it is</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">full_position_size_shares</td><td>Your full position size (e.g. 1000).</td></tr>
+              <tr><td class="mono">daily_profit_goal_dollars</td><td>Your daily goal (e.g. 2000).</td></tr>
+              <tr><td class="mono">max_daily_loss_dollars</td><td>Your hard daily stop (e.g. 3000).</td></tr>
+              <tr><td class="mono">personal_barely_feel_loss_dollars</td><td>The per-trade loss you'd "barely feel" — drives risk-based sizing.</td></tr>
+              <tr><td class="mono">user_experience_tier</td><td>Your experience tier (modulates sizing quality).</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout key">
+          <div class="ic">🔑</div>
+          <div>
+            <div class="ct-title">The schema is the source of truth</div>
+            <p><code class="inl">config/schema.example.yaml</code> is authoritative for <b>exact field names and which are required vs. optional</b>. If a field name in this guide differs from the schema, trust the schema.</p>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <div class="ic">↻</div>
+          <div>
+            <div class="ct-title">Hot reload</div>
+            <p>Edits to <code class="inl">config/user.yaml</code> while the app is running are picked up <b>without a restart</b>. A failed reload keeps the previous config and logs a warning.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s-launch">
+        <div class="kicker">2.2 — Boot</div>
+        <h3>Launching the Program</h3>
+        <pre class="code">uv run python -m app.main</pre>
+        <p>A native desktop window opens.</p>
+
+        <div class="callout danger">
+          <div class="ic">⚠</div>
+          <div>
+            <div class="ct-title">Always launch via uv run</div>
+            <p>A bare <code class="inl">python</code> lacks the timezone data the app needs and will report spurious errors (<code class="inl">ZoneInfoNotFound</code>).</p>
+          </div>
+        </div>
+
+        <h4>Health checks you can run without the GUI</h4>
+        <pre class="code">uv run python -u scripts/ibkr_smoke_test.py      <span class="cmt"># verify the TWS connection</span>
+uv run python -u scripts/runtime_smoke_test.py   <span class="cmt"># boot the scan engine headless</span></pre>
+      </section>
+
+      <section class="sec" id="s-providers">
+        <div class="kicker">2.3 — How P&amp;L Is Tracked</div>
+        <h3>Manual vs. IBKR</h3>
+        <p class="lede">The program tracks your positions and day P&amp;L through one of two <strong>providers</strong>. Selection is <strong>automatic from your config</strong>: a real <code class="inl">ibkr.account_id</code> (not the <code class="inl">REPLACE_WITH…</code> placeholder) → IBKR; otherwise → Manual.</p>
+
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th></th><th>Manual</th><th>IBKR</th></tr></thead>
+            <tbody>
+              <tr><td>Positions / P&amp;L source</td><td>what you type in</td><td>live from TWS/Gateway</td></tr>
+              <tr><td>"Record Fills" card</td><td><b>shown</b> — you log entries/exits</td><td><b>hidden</b> — fills flow automatically</td></tr>
+              <tr><td>Requires TWS running</td><td>no</td><td>yes (paper = port 7497)</td></tr>
+              <tr><td>Banner</td><td>—</td><td>shows the connected account; warns on disconnect</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-h">Use Manual…</div>
+            <p>to try the program with no broker attached. You log your own fills so the exit engine can manage positions.</p>
+          </div>
+          <div class="card">
+            <div class="card-h">Use IBKR (paper)…</div>
+            <p>for a realistic dry run where the program sees your real (simulated) fills automatically.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== PART III ====================== -->
+      <div class="part-divider" id="part-3">
+        <div class="pn">Part III</div>
+        <h2>The Interface</h2>
+        <p class="pd-deck">One window, six stacked panels — from the cosmetic crawl at the very top to the panel where you log your fills.</p>
+      </div>
+
+      <section class="sec" id="s-screen">
+        <div class="kicker">3.1 — Top to Bottom</div>
+        <h3>The Screen, Panel by Panel</h3>
+        <p class="lede">When the window is open you'll see six panels, stacked top to bottom. The Session Risk dashboard is the one to keep your eyes on.</p>
+
+        <div class="flow">
+          <div class="step"><div class="num">1</div><div class="stext"><b>Ticker tape</b> (very top) — a decorative news-style crawl of <b>every NASDAQ-listed common stock, alphabetical</b>, with live price and % change. Purely cosmetic; it does not drive any decision.</div></div>
+          <div class="step"><div class="num">2</div><div class="stext"><b>Session Risk dashboard</b> — your at-a-glance safety panel (detailed below).</div></div>
+          <div class="step"><div class="num">3</div><div class="stext"><b>Scanner board</b> — the autonomous candidate scan. Columns: ticker, country (China/Hong Kong flagged elevated-risk), last price, % change, RVOL, float, verdict. It <b>refreshes itself</b> on a timer — there is no refresh button.</div></div>
+          <div class="step"><div class="num">4</div><div class="stext"><b>Recommendations feed</b> — live trade recommendations as setups fire (detailed below).</div></div>
+          <div class="step"><div class="num">5</div><div class="stext"><b>Position Management (exits) panel</b> — while you hold, the exit engine surfaces management signals here, sorted by <b>urgency</b>. IMMEDIATE ones (stops) alarm.</div></div>
+          <div class="step"><div class="num">6</div><div class="stext"><b>Record Fills card</b> (Manual provider only) — log an entry, an exit, or a mark-to-market price so the program can track P&amp;L and manage exits.</div></div>
+        </div>
+
+        <h4>Inside the Session Risk dashboard</h4>
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-h">Day-P&amp;L-vs-max-loss meter</div>
+            <p>How much of your daily loss cap you've used (amber ~70%, red ~90–100%). <b>The single most important number on the screen.</b></p>
+          </div>
+          <div class="card">
+            <div class="card-h">Goal meter</div>
+            <p>Progress toward your daily profit goal.</p>
+          </div>
+          <div class="card">
+            <div class="card-h">Regime chip</div>
+            <p>The market-regime classification (cold / lukewarm / hot), which tightens or loosens sizing and caution.</p>
+          </div>
+          <div class="card">
+            <div class="card-h">Market-shape flags &amp; banners</div>
+            <p><em>Round-trip-prone</em> (leaders giving back gains — favor exits), <em>dispersed attention</em> (too many movers), <em>rehab</em> (reserved). Banners: the <b>daily-loss-cap padlock</b>, <b>goal-hit</b>, and stand-aside notices.</p>
+          </div>
+        </div>
+
+        <h4>Recommendation states</h4>
+        <p>Each card in the feed shows the <b>setup name, entry / stop / target</b>, the pullback number, any <b>cautions</b> (e.g. "below VWAP", "MACD bearish on 1m"), and a <b>recommended share count</b> with rationale. Its status is one of:</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><span class="pill permit">PERMITTED</span></td><td>Every gate passed; you may take it as a fresh entry.</td></tr>
+              <tr><td><span class="pill scalein">SCALE_IN</span></td><td>Allowed, but you already hold a partial position — add to it.</td></tr>
+              <tr><td><span class="pill scaleout">SCALE_OUT</span></td><td>Informational ("you're holding the runner").</td></tr>
+              <tr><td><span class="pill block">BLOCKED</span></td><td>A gate failed; the reason is named.</td></tr>
+              <tr><td><span class="pill warm">WARMING_UP</span></td><td>A gate can't evaluate yet (data still warming).</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ====================== PART IV ====================== -->
+      <div class="part-divider" id="part-4">
+        <div class="pn">Part IV</div>
+        <h2>Under the Hood</h2>
+        <p class="pd-deck">One deterministic pipeline: scan, detect, gate, recommend — then manage every position you hold on every price update. Here's exactly how each stage decides.</p>
+      </div>
+
+      <section class="sec" id="s-pipeline">
+        <div class="kicker">4.1 — The Engine</div>
+        <h3>The Pipeline &amp; Gate Stack</h3>
+        <p class="lede">The engine runs one deterministic pipeline. A setup is recognized, the gate stack vets it, and only a recommendation that clears every <strong>hard gate</strong> is marked PERMITTED.</p>
+
+        <div class="pipe">
+          <div class="row"><span class="ar">▸</span> scan the market <span class="ar">→</span> build the tradeable universe (Five Pillars)</div>
+          <div class="row"><span class="ar">▸</span> stream 1-min bars for each candidate</div>
+          <div class="row"><span class="ar">▸</span> detectors recognize a setup <span class="ar">→</span> gate stack vets it</div>
+          <div class="row"><span class="ar">▸</span> recommendation appears in the feed</div>
+          <div class="row exit"><span class="ar">↻</span> while you hold: every price update <span class="ar">→</span> exit engine <span class="ar">→</span> exit signals</div>
+        </div>
+
+        <h4>Hard gates — these block a recommendation outright</h4>
+        <div class="rule gate">
+          <div class="rule-tag">Hard gate · Daily-loss-cap padlock</div>
+          <div class="rule-body">Once your day P&amp;L hits <code class="inl">−max_daily_loss</code>, <strong>no new entry</strong> is permitted for the rest of the session.</div>
+        </div>
+        <div class="rule gate">
+          <div class="rule-tag">Hard gate · Open-position</div>
+          <div class="rule-body">Don't double-enter a name you already hold (instead it may suggest a scale-in).</div>
+        </div>
+        <div class="rule gate">
+          <div class="rule-tag">Hard gate · The four universe pillars (all must be true)</div>
+          <div class="rule-body">
+            <b>Price</b> $2–$20 &nbsp;·&nbsp; <b>% change</b> up ≥ 10% on the day &nbsp;·&nbsp; <b>RVOL</b> ≥ 5× (today's volume vs. its 50-day average) &nbsp;·&nbsp; <b>Float</b> &lt; 20M shares (true float via Ortex when available).
+          </div>
+        </div>
+
+        <h4>Cautionary flags — these inform but never block</h4>
+        <p>You see these on the card and decide for yourself:</p>
+        <div class="grid g3">
+          <div class="card"><div class="card-h" style="color:var(--gold)">MACD on the 1-minute</div><p>bearish / warming.</p></div>
+          <div class="card"><div class="card-h" style="color:var(--gold)">Below VWAP</div><p>price below, or VWAP warming.</p></div>
+          <div class="card"><div class="card-h" style="color:var(--ink-faint)">News</div><p>no catalyst / unverified — <em>currently disabled as a pillar.</em></p></div>
+        </div>
+
+        <div class="callout key">
+          <div class="ic">🔑</div>
+          <div>
+            <div class="ct-title">Why MACD / VWAP / news are cautions, not gates</div>
+            <p>Ross's biggest winners repeatedly trade against a cold 1-min MACD, below VWAP, with no news. Price action + supply/demand + Level 2 are primary; these three are advisory. A deliberate 2026-05-29 design decision — see <code class="inl">CLAUDE.md</code>.</p>
+          </div>
+        </div>
+
+        <div class="takeaway">
+          <div class="tk-label">Context</div>
+          <div class="tk-body">The <strong>daily chart</strong> is used as a <em>context filter</em> (overhead resistance, room to run, blue-sky) — <strong>never as an entry trigger.</strong></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s-setups">
+        <div class="kicker">4.2 — Recognition</div>
+        <h3>The Entry Setups (Detectors)</h3>
+        <p class="lede">All detectors are <strong>long / bullish</strong> recognizers fed by 1-minute bars. When one fires on an armed candidate, it produces a recommendation card for the gate stack to vet.</p>
+        <div class="grid g3">
+          <div class="card"><p style="margin-top:0">Micro pullback</p></div>
+          <div class="card"><p style="margin-top:0">Bull flag</p></div>
+          <div class="card"><p style="margin-top:0">ABCD</p></div>
+          <div class="card"><p style="margin-top:0">Break of pivot</p></div>
+          <div class="card"><p style="margin-top:0">Cup &amp; handle</p></div>
+          <div class="card"><p style="margin-top:0">Inverted head-and-shoulders</p></div>
+          <div class="card"><p style="margin-top:0">HOD breakout</p></div>
+          <div class="card"><p style="margin-top:0"><b>Pre-market high break</b></p></div>
+          <div class="card"><p style="margin-top:0"><b>Pre-market pivot break</b></p></div>
+          <div class="card"><p style="margin-top:0">Red-to-green</p></div>
+          <div class="card"><p style="margin-top:0">VWAP reclaim</p></div>
+          <div class="card"><p style="margin-top:0">Dip trade</p></div>
+          <div class="card"><p style="margin-top:0">Curling</p></div>
+          <div class="card"><p style="margin-top:0">First pullback</p></div>
+          <div class="card"><p style="margin-top:0">Double bottom</p></div>
+          <div class="card"><p style="margin-top:0">Half / whole-dollar breakout</p></div>
+          <div class="card"><p style="margin-top:0">MA pullback <span class="chip">5-minute</span></p></div>
+        </div>
+        <div class="callout tip">
+          <div class="ic">◷</div>
+          <div>
+            <div class="ct-title">RTH-anchored detectors stay quiet pre-market</div>
+            <p><b>Red-to-green</b> and <b>first-pullback</b> are anchored to the regular session and intentionally do not fire during pre-market.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s-exits">
+        <div class="kicker">4.3 — Position Management</div>
+        <h3>The Exit Engine</h3>
+        <p class="lede">This is the position-management half. While you hold, every price update runs the exit engine; signals appear in the exits panel sorted by urgency.</p>
+
+        <div class="rule good">
+          <div class="rule-tag">Exit · First-profit scale-out + break-even stop</div>
+          <div class="rule-body">The cleanest hardwired rule: at the first profit target, <strong>sell a portion</strong>, then move the stop on the runner to <strong>break-even</strong>. The two fire together.</div>
+        </div>
+        <div class="rule gate">
+          <div class="rule-tag">Exit · Every-tick catastrophic stop</div>
+          <div class="rule-body">The hard stop is checked on <strong>every</strong> price update (not a bar close), because these stocks move multiples of the stop width within a single bar. Once break-even is active, this same check enforces the break-even exit.</div>
+        </div>
+        <div class="rule">
+          <div class="rule-tag">Exit · Daily loss-cap / goal</div>
+          <div class="rule-body">Portfolio-level: escalates toward the cap, locks in at the goal.</div>
+        </div>
+        <div class="rule">
+          <div class="rule-tag">Exit · Discretionary signals</div>
+          <div class="rule-body">MACD flip, 9-EMA / 20-EMA / VWAP break, 50%-retrace give-back, 2-minute breakout-or-bailout, and the <strong>bear-pattern confirmations</strong> (double top, head-and-shoulders, top reversal, LOD break, bear flag) — used here as <em>exit</em> signals, consistent with long-only.</div>
+        </div>
+      </section>
+
+      <section class="sec" id="s-sizing">
+        <div class="kicker">4.4 — How Big</div>
+        <h3>Position Sizing</h3>
+        <p class="lede">The recommended share count is <strong>risk-based</strong>, and it is <strong>advisory</strong> — it never blocks a trade.</p>
+        <div class="card">
+          <div class="card-h">The formula, roughly</div>
+          <p>Your per-trade <b>"barely-feel-it" loss ÷ the stop distance</b> — then <b>capped</b> at your full position size and <b>shrunk</b> by a quality-tier modifier and a cold-market modifier (<b>×0.70 in a cold regime</b>).</p>
+        </div>
+        <div class="callout tip">
+          <div class="ic">ℹ</div>
+          <div>
+            <div class="ct-title">Sizing never gates</div>
+            <p>It informs the recommended share count, but a trade is never blocked on size.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== PART V ====================== -->
+      <div class="part-divider" id="part-5">
+        <div class="pn">Part V</div>
+        <h2>Trading With It</h2>
+        <p class="pd-deck">The full loop of a session — and the layered guardrails that stand between you and a bad day, in priority order.</p>
+      </div>
+
+      <section class="sec" id="s-session">
+        <div class="kicker">5.1 — The Loop</div>
+        <h3>A Session, Start to Finish</h3>
+        <div class="flow">
+          <div class="step"><div class="num">1</div><div class="stext"><b>Before the open:</b> start TWS/Gateway (if using IBKR) and <b>set your broker-side daily max-loss and max position size</b> (see §5.2 — do this every day, it's your real backstop). Launch the app. Glance at the dashboard to confirm your anchors loaded.</div></div>
+          <div class="step"><div class="num">2</div><div class="stext"><b>Watch</b> the scanner board fill in and the recommendations feed.</div></div>
+          <div class="step"><div class="num">3</div><div class="stext"><b>On a PERMITTED recommendation you like:</b> place the trade <b>in your broker</b> at (or near) the suggested entry, with the suggested stop and size. On the Manual provider, <b>record the fill</b> so the exit engine starts managing the position.</div></div>
+          <div class="step"><div class="num">4</div><div class="stext"><b>Manage with the exits panel:</b> take the first-profit scale-out when it fires (and let the runner ride the break-even stop), and act <b>immediately</b> on a catastrophic-stop alarm.</div></div>
+          <div class="step"><div class="num">5</div><div class="stext"><b>Respect the risk dashboard:</b> if the loss-cap padlock engages, you're done adding for the day — the program stops permitting new entries.</div></div>
+          <div class="step"><div class="num">6</div><div class="stext"><b>Stop when you decide.</b> The program runs whenever you run it; there's no forced time window.</div></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s-risk">
+        <div class="kicker">5.2 — Guardrails</div>
+        <h3>Risk Controls &amp; Guardrails</h3>
+        <p class="lede">In priority order — broker-enforced limits first, because in a "hijacked" emotional state a trader overrides in-app warnings.</p>
+
+        <div class="rule gate">
+          <div class="rule-tag">Priority 1 · Broker-side caps — your primary defense</div>
+          <div class="rule-body">Set a <strong>daily max-loss</strong> and a <strong>max position size</strong> directly in IBKR. <strong>Non-negotiable for live money.</strong> The broker must enforce the hard limits; the in-app padlock is a secondary layer.</div>
+        </div>
+        <div class="rule">
+          <div class="rule-tag">Priority 2 · In-app daily loss-cap padlock</div>
+          <div class="rule-body">Blocks new entries once the cap is hit.</div>
+        </div>
+        <div class="rule">
+          <div class="rule-tag">Priority 3 · Scale-out + break-even stop</div>
+          <div class="rule-body">Takes risk off at first profit.</div>
+        </div>
+        <div class="rule">
+          <div class="rule-tag">Priority 4 · Every-tick catastrophic stop</div>
+          <div class="rule-body">The hard floor on every position.</div>
+        </div>
+        <div class="rule">
+          <div class="rule-tag">Priority 5 · Regime-aware sizing</div>
+          <div class="rule-body">Smaller in cold / round-trip-prone markets.</div>
+        </div>
+
+        <div class="callout warn">
+          <div class="ic">⚠</div>
+          <div>
+            <div class="ct-title">Deferred guardrails</div>
+            <p>The <em>trader-rehab</em> state machine (auto-shrink after red streaks) and a <em>hijack-state</em> gate are documented in the doctrine but <b>not live</b>. Until they are, your broker-side caps cover that ground.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== PART VI ====================== -->
+      <div class="part-divider" id="part-6">
+        <div class="pn">Part VI</div>
+        <h2>Tools &amp; Limits</h2>
+        <p class="pd-deck">The offline backtest harness, an honest accounting of what is not built, common fixes, and a map of the key files.</p>
+      </div>
+
+      <section class="sec" id="s-backtest">
+        <div class="kicker">6.1 — Looking Back</div>
+        <h3>The Backtest Harness</h3>
+        <p class="lede">An offline tool to approximate how the program <em>would have</em> performed on past pre-market sessions. It replays historical 1-minute bars through the <strong>same</strong> detectors, gates, sizing, and exit engine the live app uses.</p>
+
+        <pre class="code"><span class="cmt"># last 5 trading sessions, 7-9am ET, default 0.20% slippage</span>
+uv run python -u scripts/backtest_premarket.py --days 5 --out report.md
+
+<span class="cmt"># a specific past week (walks back from --asof, which is excluded)</span>
+uv run python -u scripts/backtest_premarket.py --days 5 --asof 2026-05-22 --out prior.md
+
+<span class="cmt"># tune the realism / window</span>
+uv run python -u scripts/backtest_premarket.py --slippage-bps 35 --window 04:00-09:30</pre>
+
+        <h4>Three fill models — so you see a range, not one misleading number</h4>
+        <div class="grid g3">
+          <div class="card"><div class="card-h" style="color:var(--green)">Optimistic</div><p>Perfect fills — the upper bound.</p></div>
+          <div class="card"><div class="card-h" style="color:var(--gold)">Realistic</div><p>Tunable slippage on market-style fills — the central estimate (<code class="inl">--slippage-bps</code>, default 20 = 0.20%).</p></div>
+          <div class="card"><div class="card-h" style="color:var(--red)">Conservative</div><p>Pessimistic fills — the lower bound.</p></div>
+        </div>
+        <p>It also reports <b>peak capital deployed per day</b> (the most buying power tied up at once).</p>
+
+        <div class="callout danger">
+          <div class="ic">⚠</div>
+          <div>
+            <div class="ct-title">It is an approximation — read it that way</div>
+            <p>It cannot model Level 2; true sub-second fills are coarsened to 1-minute bars (so fill prices carry real error — that's why there are three models); and the daily universe is reconstructed from each day's movers (so it can miss pre-market-only runners that faded). Read it as <b>"roughly green or red, which setups fired, how often stops vs. targets hit"</b> — not "you would have made exactly $X."</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s-limits">
+        <div class="kicker">6.2 — Honest Accounting</div>
+        <h3>Limitations &amp; What Is <em>Not</em> Built Yet</h3>
+        <div class="grid g2">
+          <div class="card"><div class="card-h">No real-time Claude brain</div><p>Deterministic rules produce the recommendations today.</p></div>
+          <div class="card"><div class="card-h">Bar-close, not sub-second</div><p>Entries / most exits evaluate on 1-minute closes (the catastrophic stop is per-tick on the live path); the print-trigger feed isn't wired.</p></div>
+          <div class="card"><div class="card-h">Hijack / rehab gates not live</div><p>Rely on broker-side caps.</p></div>
+          <div class="card"><div class="card-h">News pillar disabled</div><p>Four pillars carry the scan.</p></div>
+          <div class="card"><div class="card-h">Level 2 proxied</div><p>Setups that doctrine says need tape run on bar structure.</p></div>
+          <div class="card"><div class="card-h">Exits least live-validated</div><p>Unit-tested and internally consistent, but the least real-market exposure. Watch them closely on your first live mornings.</p></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s-trouble">
+        <div class="kicker">6.3 — When Something's Off</div>
+        <h3>Troubleshooting &amp; Operations</h3>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>Symptom</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr><td>Spurious <code class="inl">ZoneInfoNotFound</code> errors</td><td><b>Always use <code class="inl">uv run</code></b> — bare <code class="inl">python</code> lacks <code class="inl">tzdata</code>.</td></tr>
+              <tr><td>Scanner empty / "waiting for first scan"</td><td>Check <code class="inl">massive.api_key</code> is set and not the placeholder. Off-hours the board shows the prior session's gainers.</td></tr>
+              <tr><td>IBKR disconnect banner</td><td>TWS/Gateway isn't running, or the port/client_id is wrong. The app auto-reconnects when it returns.</td></tr>
+              <tr><td>Config change not taking effect</td><td>A malformed <code class="inl">user.yaml</code> is rejected and the previous config kept — check the console for a WARN line.</td></tr>
+              <tr><td>Verify the install</td><td><code class="inl">uv run pytest</code> runs the full test suite.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="sec" id="s-files">
+        <div class="kicker">6.4 — The Map</div>
+        <h3>Reference — Key Files</h3>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th class="mono">path</th><th>what it is</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">CLAUDE.md</td><td>The authoritative engineering reference &amp; invariants.</td></tr>
+              <tr><td class="mono">config/schema.example.yaml</td><td>Config field reference (copy to <code class="inl">user.yaml</code>).</td></tr>
+              <tr><td class="mono">app/main.py</td><td>Launch entry point &amp; provider picker.</td></tr>
+              <tr><td class="mono">app/runtime.py</td><td>The live scan → detect → gate → exit engine.</td></tr>
+              <tr><td class="mono">app/gates/</td><td>Hard gates (<code class="inl">composite.py</code>) and cautions (<code class="inl">cautions.py</code>).</td></tr>
+              <tr><td class="mono">app/detectors/</td><td>The entry-setup recognizers.</td></tr>
+              <tr><td class="mono">app/exits/</td><td>The exit-trigger roster.</td></tr>
+              <tr><td class="mono">app/sizing/ · app/scanner/ · app/monitor/</td><td>Sizing, scan/vendors, exit orchestration.</td></tr>
+              <tr><td class="mono">app/web/</td><td>The UI (<code class="inl">index.html</code>, <code class="inl">main.js</code>, <code class="inl">styles.css</code>).</td></tr>
+              <tr><td class="mono">app/backtest/ + scripts/backtest_premarket.py</td><td>The backtest harness.</td></tr>
+              <tr><td class="mono">playbook/</td><td>The machine-readable distillation of Ross's course (the strategy source-of-truth).</td></tr>
+              <tr><td class="mono">Claude Code Session Handoff Documents/</td><td>Cross-session status; read the most recent first.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="footer">
+        <p class="big">"Reduce risk first — then generally follow the strategy."</p>
+        <p>This guide describes the Warrior Trading Assistant as built in Phase 3 (runtime app). It is an explanation of how a personal tool works — not financial advice, not a recommendation, and not a guarantee of any result. The program proposes; you execute. Trading small-cap stocks carries substantial risk of loss. <b>Last updated: 2026-05-31.</b></p>
+      </div>
+
+    </div><!-- /.wrap -->
+  </main>
+</div><!-- /.layout -->
+
+<button id="themetoggle" aria-label="Toggle light/dark theme"><span id="tt-ic">◐</span><span id="tt-tx">Light</span></button>
+
+<script>
+/* ============================================================
+   Theme toggle
+   ============================================================ */
+(function(){
+  const root = document.documentElement;
+  const saved = localStorage.getItem("wta-theme");
+  if(saved) root.setAttribute("data-theme", saved);
+  function sync(){
+    const dark = root.getAttribute("data-theme") !== "light";
+    const tx = document.getElementById("tt-tx");
+    if(tx) tx.textContent = dark ? "Light" : "Dark";
+  }
+  function toggle(){
+    const dark = root.getAttribute("data-theme") !== "light";
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+    localStorage.setItem("wta-theme", dark ? "light" : "dark");
+    sync();
+  }
+  document.getElementById("themetoggle").addEventListener("click", toggle);
+  const t2 = document.getElementById("themebtn2");
+  if(t2) t2.addEventListener("click", toggle);
+  sync();
+})();
+
+/* ============================================================
+   Scrollspy + progress + mobile nav
+   ============================================================ */
+(function(){
+  const links = Array.from(document.querySelectorAll('nav.toc a'));
+  const map = {};
+  links.forEach(a => { const id = a.getAttribute('href').slice(1); map[id] = a; });
+  const sections = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+
+  const prog = document.getElementById('progress');
+  function onScroll(){
+    const st = window.scrollY || document.documentElement.scrollTop;
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    prog.style.width = (docH>0 ? (st/docH*100) : 0) + "%";
+
+    let current = null;
+    for(const s of sections){
+      if(s.getBoundingClientRect().top <= 140) current = s;
+    }
+    links.forEach(a => a.classList.remove('active'));
+    if(current && map[current.id]){
+      map[current.id].classList.add('active');
+    }
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+
+  // mobile nav
+  const sb = document.getElementById('sidebar');
+  const scrim = document.getElementById('scrim');
+  const mb = document.getElementById('menubtn');
+  function openNav(){ sb.classList.add('open'); scrim.classList.add('show'); }
+  function closeNav(){ sb.classList.remove('open'); scrim.classList.remove('show'); }
+  if(mb) mb.addEventListener('click', openNav);
+  if(scrim) scrim.addEventListener('click', closeNav);
+  links.forEach(a => a.addEventListener('click', () => { if(window.innerWidth<=980) closeNav(); }));
+
+  document.addEventListener('DOMContentLoaded', onScroll);
+  onScroll();
+})();
+</script>
+</body>
+</html>
