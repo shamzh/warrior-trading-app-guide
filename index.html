@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b0f14">
-<meta name="description" content="User guide for the Warrior Trading Assistant: a personal desktop app that applies Ross Cameron's momentum day-trading strategy in real time — how it's used and how it operates, as built (Phase 3).">
+<meta name="description" content="User guide for the Warrior Trading Assistant: a personal desktop app that applies Ross Cameron's momentum day-trading strategy in real time. v1 surfaces long-entry recommendations only — you execute manually in DAS Trader Pro and manage the trade yourself.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="WT Assistant">
@@ -505,7 +505,6 @@ table.data td.mono, table.data th.mono { font-family: var(--mono); }
       <div class="part">II · Getting Started</div>
       <a href="#s-prereq"><span class="n">2.1</span>Prerequisites &amp; Setup</a>
       <a href="#s-launch"><span class="n">2.2</span>Launching the Program</a>
-      <a href="#s-providers"><span class="n">2.3</span>Manual vs. IBKR</a>
 
       <div class="part">III · The Interface</div>
       <a href="#s-screen"><span class="n">3.1</span>The Screen, Panel by Panel</a>
@@ -513,8 +512,7 @@ table.data td.mono, table.data th.mono { font-family: var(--mono); }
       <div class="part">IV · Under the Hood</div>
       <a href="#s-pipeline"><span class="n">4.1</span>The Pipeline &amp; Gate Stack</a>
       <a href="#s-setups"><span class="n">4.2</span>The Entry Setups</a>
-      <a href="#s-exits"><span class="n">4.3</span>The Exit Engine</a>
-      <a href="#s-sizing"><span class="n">4.4</span>Position Sizing</a>
+      <a href="#s-exits"><span class="n">4.3</span>Exits — Your Job in v1</a>
 
       <div class="part">V · Trading With It</div>
       <a href="#s-session"><span class="n">5.1</span>A Session, Start to Finish</a>
@@ -533,18 +531,18 @@ table.data td.mono, table.data th.mono { font-family: var(--mono); }
 
       <!-- ====================== HERO ====================== -->
       <header class="hero">
-        <div class="eyebrow">User Guide · Phase 3 Runtime</div>
+        <div class="eyebrow">User Guide · Phase 3 Runtime · v1 entry-only</div>
         <h1>Warrior Trading <em>Assistant</em></h1>
-        <p class="deck">A personal desktop assistant for applying Ross Cameron's Warrior day-trading strategy in real time — what it actually does today, how each screen works, and exactly how it decides what to recommend.</p>
+        <p class="deck">A personal desktop assistant for applying Ross Cameron's Warrior day-trading strategy in real time. In v1 its one job is to <em>find the long entries and put them on screen</em> — you execute manually in DAS Trader Pro and manage the trade yourself.</p>
         <div class="meta-chips">
           <span class="chip green">▲ Long-only</span>
           <span class="chip">Small-cap momentum · $2–$20</span>
-          <span class="chip">It proposes — you execute</span>
-          <span class="chip gold">Reduce risk first</span>
+          <span class="chip gold">Entry recommendations only</span>
+          <span class="chip">It proposes — you execute (in DAS)</span>
         </div>
 
         <div class="readnote">
-          <b>How to read this guide.</b> It describes <b>what is actually built today</b>, not the eventual vision. Where something is planned-but-not-wired, it says so plainly (see <a href="#s-limits" class="link">§6.2</a>). The authoritative engineering reference is <code class="inl">CLAUDE.md</code>; this is the human-facing companion to it. The colors below carry meaning throughout:
+          <b>How to read this guide.</b> It describes <b>what is actually built today</b>, not the eventual vision. <b>v1 is entry-recommendations-only</b>: the program does not track your positions or P&amp;L, does not manage exits, and does not read Level 2 — those subsystems exist in the codebase but are shelved (see <a href="#s-built" class="link">§1.2</a> and <a href="#s-limits" class="link">§6.2</a>). The authoritative engineering reference is <code class="inl">CLAUDE.md</code>; this is the human-facing companion to it. The colors below carry meaning throughout:
           <div class="legend">
             <span><i class="dot" style="background:var(--green)"></i> permitted / go / built</span>
             <span><i class="dot" style="background:var(--red)"></i> blocked / hard stop / risk</span>
@@ -564,7 +562,7 @@ table.data td.mono, table.data th.mono { font-family: var(--mono); }
       <section class="sec" id="s-what">
         <div class="kicker">1.1 — The Thesis</div>
         <h3>What This Program Is</h3>
-        <p class="lede">A personal desktop assistant for applying <strong>Ross Cameron's Warrior day-trading strategy</strong> while you trade. It watches the market in real time, finds the kind of volatile small-cap momentum stocks Ross trades, checks each potential trade against his risk rules, and surfaces <strong>buy/sell recommendations and exit management</strong> on screen.</p>
+        <p class="lede">A personal desktop assistant for applying <strong>Ross Cameron's Warrior day-trading strategy</strong> while you trade. It watches the market in real time, finds the kind of volatile small-cap momentum stocks Ross trades, checks each potential trade against his entry rules, and surfaces <strong>long-entry recommendations</strong> on screen — each with a setup name, an entry, a stop, and a target.</p>
 
         <p>Two principles shape everything it does:</p>
         <div class="grid g2">
@@ -581,11 +579,15 @@ table.data td.mono, table.data th.mono { font-family: var(--mono); }
         <h4>Hard constraints baked into the program</h4>
         <div class="rule good">
           <div class="rule-tag">Constraint · Long-only</div>
-          <div class="rule-body">It only ever recommends <strong>buying</strong> (then selling to exit). Bear patterns — double tops, head-and-shoulders, breakdowns — are used <strong>only as exit signals</strong>, never as entries.</div>
+          <div class="rule-body">It only ever recommends <strong>buying</strong>. Bear patterns — double tops, head-and-shoulders, breakdowns — are encoded <strong>only as anti-signals</strong>, never as entries.</div>
         </div>
         <div class="rule gate">
           <div class="rule-tag">Constraint · It proposes, you execute</div>
-          <div class="rule-body">The program <strong>never places orders.</strong> It recommends; you decide and place the trade in your own broker, then tell the program what you did (or, with IBKR, it reads your fills live). A deliberate safety design — <strong>you are always the one pulling the trigger.</strong></div>
+          <div class="rule-body">The program <strong>never places orders and never touches your account.</strong> It recommends an entry; <strong>you</strong> decide, and <strong>you</strong> place the trade in <strong>DAS Trader Pro</strong> (manually) at your own discretion. A deliberate safety design — <strong>you are always the one pulling the trigger.</strong></div>
+        </div>
+        <div class="rule gate">
+          <div class="rule-tag">Constraint · You own the exit and the tape</div>
+          <div class="rule-body">In v1 the program stops at the entry recommendation. Confirming the entry on <strong>Level 2 / Time &amp; Sales</strong> and <strong>managing the exit</strong> (scale out at first profit, move the stop to break-even, bail on a catastrophic stop) are <strong>your job</strong>, off Ross's rules and your own screen — the program does not do them for you.</div>
         </div>
         <div class="rule">
           <div class="rule-tag">Constraint · Small-cap momentum, short holds</div>
@@ -596,32 +598,32 @@ table.data td.mono, table.data th.mono { font-family: var(--mono); }
       <section class="sec" id="s-built">
         <div class="kicker">1.2 — Read This First</div>
         <h3>What's Built vs. What Isn't</h3>
-        <p class="lede">The single most important thing to understand before trusting the program: the recommendations come from a <strong>deterministic rules engine</strong> today — not from Claude reasoning live over the data. That brain layer is parked. Here is the honest map.</p>
+        <p class="lede">The single most important thing to understand: <strong>v1 is entry-recommendations-only</strong>. The program finds and surfaces the long entries; it does <strong>not</strong> track your positions or P&amp;L, manage your exits, or read Level 2. And the recommendations come from a <strong>deterministic rules engine</strong> today — not from Claude reasoning live over the data. Here is the honest map.</p>
 
         <div class="compare">
           <div class="col good">
-            <h5>✓ BUILT AND WORKING</h5>
+            <h5>✓ BUILT — THE LIVE v1 ENTRY PIPELINE</h5>
             <ul>
-              <li>Per-user <b>config layer</b> (your risk anchors)</li>
-              <li>Two <b>P&amp;L providers</b>: Manual entry &amp; <b>IBKR</b> paper trading (TWS API)</li>
-              <li><b>Scanner</b> — Five-Pillars candidate scan (Massive), true <b>float</b> via Ortex, <b>country</b> via SEC EDGAR</li>
+              <li>Per-user <b>config layer</b> (your risk anchors + vendor keys)</li>
+              <li><b>Scanner</b> — Five-Pillars candidate scan on <b>Massive</b> data, true <b>free float</b> via <b>FMP</b>, <b>country</b> via SEC EDGAR</li>
               <li><b>~18 entry-setup detectors</b> (micro pullback, bull flag, ABCD, VWAP reclaim, PM high/pivot breaks, dip trade…)</li>
-              <li><b>Hard risk gates</b> + <b>cautionary flags</b></li>
-              <li><b>Exit engine</b> (scale-out + B/E stop, every-tick catastrophic stop, loss-cap/goal, MACD flip, MA break, bear-pattern exits)</li>
-              <li><b>Position sizing</b> (risk-based, regime-aware)</li>
-              <li><b>Market-regime</b> classification</li>
-              <li>The <b>desktop UI</b> (dashboard, scanner board, recs feed, exits panel, ticker tape)</li>
+              <li><b>Hard entry gates</b> (four universe pillars + a <b>room-to-run</b> check) + <b>cautionary flags</b></li>
+              <li><b>Market-regime</b> classification (informational)</li>
+              <li>The <b>desktop UI</b>, trimmed to the entry-only view (market-conditions, recs feed, scanner board, ticker tape)</li>
               <li>An offline <b>backtest harness</b></li>
             </ul>
           </div>
           <div class="col bad">
-            <h5>✗ NOT YET BUILT / DEFERRED</h5>
+            <h5>✗ NOT IN v1 — SHELVED / DEFERRED</h5>
             <ul>
+              <li><b>No position / P&amp;L / account awareness</b> — execution is manual in <b>DAS Trader Pro</b>, which has no usable API. No Record-Fills card, no P&amp;L bar, no positions table.</li>
+              <li><b>No exit engine</b> — scale-out, break-even / catastrophic stop, MACD-flip / MA-break, bear-pattern exits are <b>doctrine you apply yourself</b> (the code is in-tree, just not wired).</li>
+              <li><b>No on-screen position sizing</b> — recs show entry / stop / target, no share count.</li>
+              <li><b>No Level 2 in the program</b> — depth is <b>your own eyes</b> (DAS), not a feed the app consumes.</li>
+              <li><b>No IBKR</b> — the account was closed; no TWS, no live broker connection.</li>
               <li>The <b>Claude "brain"</b> — recs are from the rules engine, not live Claude reasoning. Parked.</li>
-              <li><b>Sub-second print-trigger execution</b> — the live tick feed isn't wired, so the engine runs in <b>bar-close mode</b> (1-min closes). The every-tick catastrophic stop is the exception.</li>
-              <li><b>Hijack-state &amp; rehab-state gates</b> — in doctrine but not live; your <b>broker-side caps are the substitute.</b></li>
-              <li><b>News pillar</b> — disabled (no vendor wired). The four price/volume/float pillars carry the scan.</li>
-              <li><b>Level 2 / depth-of-market</b> — a few setups lean on tape in doctrine; the app runs them on bar-structure proxies for now.</li>
+              <li><b>Sub-second print-trigger</b> — not wired; the engine runs in <b>bar-close mode</b> (1-min closes).</li>
+              <li><b>News pillar</b> — disabled (no vendor). The four price/volume/float pillars carry the scan.</li>
             </ul>
           </div>
         </div>
@@ -629,8 +631,8 @@ table.data td.mono, table.data th.mono { font-family: var(--mono); }
         <div class="callout warn">
           <div class="ic">⚠</div>
           <div>
-            <div class="ct-title">Exits are the least live-validated subsystem</div>
-            <p>They're unit-tested and internally consistent, but have had the least real-market exposure. Watch them closely on your first live mornings.</p>
+            <div class="ct-title">Why this scope?</div>
+            <p>The data/execution stack changed materially on 2026-06-02 — IBKR closed, execution moved to manual DAS, and the float vendor moved from Ortex to FMP. Rather than ship half-working position/exit subsystems against a broker the app can't read, v1 was narrowed to the thing it can do well and safely: <b>surface the entries.</b> The shelved subsystems are kept in the codebase for a future version.</p>
           </div>
         </div>
       </section>
@@ -639,22 +641,22 @@ table.data td.mono, table.data th.mono { font-family: var(--mono); }
       <div class="part-divider" id="part-2">
         <div class="pn">Part II</div>
         <h2>Getting Started</h2>
-        <p class="pd-deck">One-time setup, how to launch, and the single decision that changes how the program tracks your money: Manual entry versus a live Interactive Brokers connection.</p>
+        <p class="pd-deck">One-time setup and how to launch. Market data comes from Massive; true float from FMP is optional; execution is manual in DAS Trader Pro.</p>
       </div>
 
       <section class="sec" id="s-prereq">
         <div class="kicker">2.1 — One-Time Setup</div>
         <h3>Prerequisites &amp; Setup</h3>
-        <p class="lede">You need a Windows 11 machine, Python 3.12, and the <code class="inl">uv</code> package manager. Market data comes from Massive; Ortex and IBKR are optional.</p>
+        <p class="lede">You need a Windows 11 machine, Python 3.12, and the <code class="inl">uv</code> package manager. Market data comes from Massive; <b>DAS Trader Pro</b> is your execution platform; an FMP key for true float is optional.</p>
 
         <div class="grid g2">
           <div class="card">
             <div class="card-h">Required</div>
-            <p><b>Windows 11</b>, <b>Python 3.12</b>, <b><a href="https://docs.astral.sh/uv/" class="link">uv</a></b>, and a <b>Massive</b> (formerly Polygon) Stocks Advanced data subscription.</p>
+            <p><b>Windows 11</b>, <b>Python 3.12</b>, <b><a href="https://docs.astral.sh/uv/" class="link">uv</a></b>, a <b>Massive</b> (formerly Polygon) Stocks Advanced data subscription, and <b>DAS Trader Pro</b> for execution (with your own Level 2 / Time &amp; Sales subscription).</p>
           </div>
           <div class="card">
             <div class="card-h">Optional</div>
-            <p><b>Ortex</b> for true float, and <b>Interactive Brokers</b> for live P&amp;L / positions. Without them the scan still runs on four pillars and you use the Manual provider.</p>
+            <p>An <b>FMP</b> (Financial Modeling Prep) API key for true free float (Pillar 5). Without it, the scanner falls back to the shares-outstanding upper bound and marks ambiguous names <em>needs-confirmation</em> instead of a hard pass.</p>
           </div>
         </div>
 
@@ -665,9 +667,9 @@ uv sync                       <span class="cmt"># install dependencies into .ven
         <h4>Create your config</h4>
         <div class="flow">
           <div class="step"><div class="num">1</div><div class="stext">Copy <code class="inl">config/schema.example.yaml</code> → <code class="inl">config/user.yaml</code>. <b>That file is gitignored</b> — your API keys never get committed.</div></div>
-          <div class="step"><div class="num">2</div><div class="stext">Fill in your <b>anchors</b> — the values Ross's ratio-based rules need (full position size, daily goal, max daily loss, your "barely-feel-it" per-trade loss, experience tier). See the table below.</div></div>
-          <div class="step"><div class="num">3</div><div class="stext">Fill in vendor keys: <code class="inl">massive.api_key</code>, and optionally <code class="inl">ortex.api_key</code>.</div></div>
-          <div class="step"><div class="num">4</div><div class="stext">If using IBKR, set the <code class="inl">ibkr</code> section (host / port / client_id). <b>Port 7497 is paper trading</b>; 7496 is live. Use paper until you trust it.</div></div>
+          <div class="step"><div class="num">2</div><div class="stext">Fill in your <b>anchors</b> — the risk values Ross's ratio-based rules use (full position size, daily goal, max daily loss, your "barely-feel-it" per-trade loss, experience tier). See the table below. <em>In v1 these are mostly forward-looking — the subsystems that consume them (sizing, P&amp;L caps) are shelved — but the schema still requires them, so fill them in honestly.</em></div></div>
+          <div class="step"><div class="num">3</div><div class="stext">Fill in vendor keys: <code class="inl">massive.api_key</code> (<b>required</b> for the scanner) and optionally <code class="inl">fmp.api_key</code> (true float for Pillar 5).</div></div>
+          <div class="step"><div class="num">4</div><div class="stext">Any <code class="inl">ibkr</code> block is <b>ignored</b> (the account is closed) — you can delete it.</div></div>
         </div>
 
         <h4>The anchor values</h4>
@@ -715,36 +717,14 @@ uv sync                       <span class="cmt"># install dependencies into .ven
           </div>
         </div>
 
-        <h4>Health checks you can run without the GUI</h4>
-        <pre class="code">uv run python -u scripts/ibkr_smoke_test.py      <span class="cmt"># verify the TWS connection</span>
-uv run python -u scripts/runtime_smoke_test.py   <span class="cmt"># boot the scan engine headless</span></pre>
-      </section>
+        <h4>A health check you can run without the GUI</h4>
+        <pre class="code">uv run python -u scripts/runtime_smoke_test.py   <span class="cmt"># boot the scan engine headless</span></pre>
 
-      <section class="sec" id="s-providers">
-        <div class="kicker">2.3 — How P&amp;L Is Tracked</div>
-        <h3>Manual vs. IBKR</h3>
-        <p class="lede">The program tracks your positions and day P&amp;L through one of two <strong>providers</strong>. Selection is <strong>automatic from your config</strong>: a real <code class="inl">ibkr.account_id</code> (not the <code class="inl">REPLACE_WITH…</code> placeholder) → IBKR; otherwise → Manual.</p>
-
-        <div class="tablewrap">
-          <table class="data">
-            <thead><tr><th></th><th>Manual</th><th>IBKR</th></tr></thead>
-            <tbody>
-              <tr><td>Positions / P&amp;L source</td><td>what you type in</td><td>live from TWS/Gateway</td></tr>
-              <tr><td>"Record Fills" card</td><td><b>shown</b> — you log entries/exits</td><td><b>hidden</b> — fills flow automatically</td></tr>
-              <tr><td>Requires TWS running</td><td>no</td><td>yes (paper = port 7497)</td></tr>
-              <tr><td>Banner</td><td>—</td><td>shows the connected account; warns on disconnect</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="grid g2">
-          <div class="card">
-            <div class="card-h">Use Manual…</div>
-            <p>to try the program with no broker attached. You log your own fills so the exit engine can manage positions.</p>
-          </div>
-          <div class="card">
-            <div class="card-h">Use IBKR (paper)…</div>
-            <p>for a realistic dry run where the program sees your real (simulated) fills automatically.</p>
+        <div class="callout key">
+          <div class="ic">⌨</div>
+          <div>
+            <div class="ct-title">Execution lives in DAS, not in the app</div>
+            <p>There is no provider to pick and no broker connection to configure. The app surfaces entries; you place and manage every trade <b>manually in DAS Trader Pro</b>. (Earlier versions had Manual / IBKR P&amp;L providers — both are shelved in v1.)</p>
           </div>
         </div>
       </section>
@@ -753,93 +733,94 @@ uv run python -u scripts/runtime_smoke_test.py   <span class="cmt"># boot the sc
       <div class="part-divider" id="part-3">
         <div class="pn">Part III</div>
         <h2>The Interface</h2>
-        <p class="pd-deck">One window, six stacked panels — from the cosmetic crawl at the very top to the panel where you log your fills.</p>
+        <p class="pd-deck">One window, four stacked panels — the cosmetic crawl at the very top, a glanceable read on the market, the recommendations feed, and the scanner board.</p>
       </div>
 
       <section class="sec" id="s-screen">
         <div class="kicker">3.1 — Top to Bottom</div>
         <h3>The Screen, Panel by Panel</h3>
-        <p class="lede">When the window is open you'll see six panels, stacked top to bottom. The Session Risk dashboard is the one to keep your eyes on.</p>
+        <p class="lede">When the window is open you'll see four panels, stacked top to bottom. The Live Recommendations feed is the heart of v1.</p>
 
         <div class="flow">
           <div class="step"><div class="num">1</div><div class="stext"><b>Ticker tape</b> (very top) — a decorative news-style crawl of <b>every NASDAQ-listed common stock, alphabetical</b>, with live price and % change. Purely cosmetic; it does not drive any decision.</div></div>
-          <div class="step"><div class="num">2</div><div class="stext"><b>Session Risk dashboard</b> — your at-a-glance safety panel (detailed below).</div></div>
-          <div class="step"><div class="num">3</div><div class="stext"><b>Scanner board</b> — the autonomous candidate scan. Columns: ticker, country (China/Hong Kong flagged elevated-risk), last price, % change, RVOL, float, verdict. It <b>refreshes itself</b> on a timer — there is no refresh button.</div></div>
-          <div class="step"><div class="num">4</div><div class="stext"><b>Recommendations feed</b> — live trade recommendations as setups fire (detailed below).</div></div>
-          <div class="step"><div class="num">5</div><div class="stext"><b>Position Management (exits) panel</b> — while you hold, the exit engine surfaces management signals here, sorted by <b>urgency</b>. IMMEDIATE ones (stops) alarm.</div></div>
-          <div class="step"><div class="num">6</div><div class="stext"><b>Record Fills card</b> (Manual provider only) — log an entry, an exit, or a mark-to-market price so the program can track P&amp;L and manage exits.</div></div>
+          <div class="step"><div class="num">2</div><div class="stext"><b>Market Conditions</b> — a glanceable read on the <em>market</em>, not your account (detailed below).</div></div>
+          <div class="step"><div class="num">3</div><div class="stext"><b>Live Recommendations</b> — a card appears whenever a setup fires and clears the gates (detailed below).</div></div>
+          <div class="step"><div class="num">4</div><div class="stext"><b>Scanner board</b> — the autonomous candidate scan. Columns: ticker, country (China/Hong Kong flagged elevated-risk), last price, % change, RVOL, float, verdict. It <b>refreshes itself</b> on a timer — there is no refresh button.</div></div>
         </div>
 
-        <h4>Inside the Session Risk dashboard</h4>
-        <div class="grid g2">
-          <div class="card">
-            <div class="card-h">Day-P&amp;L-vs-max-loss meter</div>
-            <p>How much of your daily loss cap you've used (amber ~70%, red ~90–100%). <b>The single most important number on the screen.</b></p>
+        <div class="callout tip">
+          <div class="ic">ℹ</div>
+          <div>
+            <div class="ct-title">No positions table, exits panel, or Record-Fills form</div>
+            <p>Those belonged to the shelved position/exit subsystems. The P&amp;L meters and loss-cap padlock that used to live in the dashboard were retired with them — the app has no P&amp;L source in v1.</p>
           </div>
-          <div class="card">
-            <div class="card-h">Goal meter</div>
-            <p>Progress toward your daily profit goal.</p>
-          </div>
+        </div>
+
+        <h4>Inside Market Conditions</h4>
+        <div class="grid g3">
           <div class="card">
             <div class="card-h">Regime chip</div>
-            <p>The market-regime classification (cold / lukewarm / hot), which tightens or loosens sizing and caution.</p>
+            <p>The market-regime classification (deeply-cold → cold → lukewarm → warm → hot), derived from market breadth. It sets the overall caution tone.</p>
           </div>
           <div class="card">
-            <div class="card-h">Market-shape flags &amp; banners</div>
-            <p><em>Round-trip-prone</em> (leaders giving back gains — favor exits), <em>dispersed attention</em> (too many movers), <em>rehab</em> (reserved). Banners: the <b>daily-loss-cap padlock</b>, <b>goal-hit</b>, and stand-aside notices.</p>
+            <div class="card-h">Market-shape flags</div>
+            <p><em>Round-trip-prone</em> (leaders giving back gains — favor caution), <em>dispersed attention</em> (too many movers at once), <em>rehab</em> (reserved; not live).</p>
+          </div>
+          <div class="card">
+            <div class="card-h">Stand-aside banner</div>
+            <p>Appears in a <em>deeply-cold</em> regime to suggest favoring standing aside (A-setups only, smallest size).</p>
           </div>
         </div>
 
         <h4>Recommendation states</h4>
-        <p>Each card in the feed shows the <b>setup name, entry / stop / target</b>, the pullback number, any <b>cautions</b> (e.g. "below VWAP", "MACD bearish on 1m"), and a <b>recommended share count</b> with rationale. Its status is one of:</p>
+        <p>Each card shows the <b>setup name, entry / stop / target</b>, the pullback number (if any), a <b>blue-sky</b> tag when the stock is breaking a multi-year high, and any <b>cautions</b> (e.g. "below VWAP", "MACD bearish on 1m"). Its status is one of:</p>
         <div class="tablewrap">
           <table class="data">
             <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
             <tbody>
-              <tr><td><span class="pill permit">PERMITTED</span></td><td>Every gate passed; you may take it as a fresh entry.</td></tr>
-              <tr><td><span class="pill scalein">SCALE_IN</span></td><td>Allowed, but you already hold a partial position — add to it.</td></tr>
-              <tr><td><span class="pill scaleout">SCALE_OUT</span></td><td>Informational ("you're holding the runner").</td></tr>
-              <tr><td><span class="pill block">BLOCKED</span></td><td>A gate failed; the reason is named.</td></tr>
-              <tr><td><span class="pill warm">WARMING_UP</span></td><td>A gate can't evaluate yet (data still warming).</td></tr>
+              <tr><td><span class="pill permit">PERMITTED</span></td><td>Every gate passed; this is a tradeable long entry.</td></tr>
+              <tr><td><span class="pill block">BLOCKED</span></td><td>A gate failed; the reason is named (shown in the <em>Suppressed today</em> sidebar).</td></tr>
+              <tr><td><span class="pill warm">WARMING_UP</span></td><td>A gate can't evaluate yet (indicator data still warming).</td></tr>
             </tbody>
           </table>
         </div>
+        <p>A co-firing group (two detectors on the same bar — e.g. micro pullback + half/whole-dollar) renders as a single stacked card with a "Confirmed by:" badge; CH 8-4 calls that combination "the very best version of the setup." <em>(SCALE_IN / SCALE_OUT card styles exist in the UI but don't fire in v1 — they need position awareness, which is out of scope.)</em></p>
       </section>
 
       <!-- ====================== PART IV ====================== -->
       <div class="part-divider" id="part-4">
         <div class="pn">Part IV</div>
         <h2>Under the Hood</h2>
-        <p class="pd-deck">One deterministic pipeline: scan, detect, gate, recommend — then manage every position you hold on every price update. Here's exactly how each stage decides.</p>
+        <p class="pd-deck">One deterministic pipeline: scan, detect, gate, recommend. In v1 it stops at the recommendation — from there it's you. Here's exactly how each stage decides.</p>
       </div>
 
       <section class="sec" id="s-pipeline">
         <div class="kicker">4.1 — The Engine</div>
         <h3>The Pipeline &amp; Gate Stack</h3>
-        <p class="lede">The engine runs one deterministic pipeline. A setup is recognized, the gate stack vets it, and only a recommendation that clears every <strong>hard gate</strong> is marked PERMITTED.</p>
+        <p class="lede">The engine runs one deterministic pipeline. A setup is recognized, the gate stack vets it, and only a recommendation that clears every <strong>hard gate</strong> is marked PERMITTED. In v1 the pipeline <strong>stops at the recommendation</strong> — confirming on Level 2, executing in DAS, and managing the exit are yours.</p>
 
         <div class="pipe">
           <div class="row"><span class="ar">▸</span> scan the market <span class="ar">→</span> build the tradeable universe (Five Pillars)</div>
           <div class="row"><span class="ar">▸</span> stream 1-min bars for each candidate</div>
           <div class="row"><span class="ar">▸</span> detectors recognize a setup <span class="ar">→</span> gate stack vets it</div>
           <div class="row"><span class="ar">▸</span> recommendation appears in the feed</div>
-          <div class="row exit"><span class="ar">↻</span> while you hold: every price update <span class="ar">→</span> exit engine <span class="ar">→</span> exit signals</div>
+          <div class="row"><span class="ar">▸</span> you confirm on L2 <span class="ar">→</span> execute in DAS <span class="ar">→</span> manage the exit yourself</div>
         </div>
 
         <h4>Hard gates — these block a recommendation outright</h4>
         <div class="rule gate">
-          <div class="rule-tag">Hard gate · Daily-loss-cap padlock</div>
-          <div class="rule-body">Once your day P&amp;L hits <code class="inl">−max_daily_loss</code>, <strong>no new entry</strong> is permitted for the rest of the session.</div>
-        </div>
-        <div class="rule gate">
-          <div class="rule-tag">Hard gate · Open-position</div>
-          <div class="rule-body">Don't double-enter a name you already hold (instead it may suggest a scale-in).</div>
-        </div>
-        <div class="rule gate">
           <div class="rule-tag">Hard gate · The four universe pillars (all must be true)</div>
           <div class="rule-body">
-            <b>Price</b> $2–$20 &nbsp;·&nbsp; <b>% change</b> up ≥ 10% on the day &nbsp;·&nbsp; <b>RVOL</b> ≥ 5× (today's volume vs. its 50-day average) &nbsp;·&nbsp; <b>Float</b> &lt; 20M shares (true float via Ortex when available).
+            <b>Price</b> $2–$20 &nbsp;·&nbsp; <b>% change</b> up ≥ 10% on the day &nbsp;·&nbsp; <b>RVOL</b> ≥ 5× (today's volume vs. its 50-day average) &nbsp;·&nbsp; <b>Float</b> &lt; 20M shares (true free float via FMP when available, else the shares-outstanding upper bound).
           </div>
+        </div>
+        <div class="rule gate">
+          <div class="rule-tag">Hard gate · Room-to-run</div>
+          <div class="rule-body">There must be <strong>≥ ~20¢ of room</strong> from the entry to the nearest overhead resistance (the next whole dollar above, or the prior high-of-day when it sits above entry). A breakout straight into resistance is suppressed; a genuine <strong>blue-sky</strong> breakout (new all-time high, no overhead) is treated as unlimited room.</div>
+        </div>
+        <div class="rule">
+          <div class="rule-tag">Inert in v1 · Open-position / daily-loss-cap / hijack / rehab</div>
+          <div class="rule-body">These gates still exist in the composite but are <strong>inert in v1</strong> — they need the position and P&amp;L data the app doesn't have. Your <strong>broker-side caps in DAS</strong> are the real backstop (see <a href="#s-risk" class="link">§5.2</a>).</div>
         </div>
 
         <h4>Cautionary flags — these inform but never block</h4>
@@ -897,41 +878,28 @@ uv run python -u scripts/runtime_smoke_test.py   <span class="cmt"># boot the sc
       </section>
 
       <section class="sec" id="s-exits">
-        <div class="kicker">4.3 — Position Management</div>
-        <h3>The Exit Engine</h3>
-        <p class="lede">This is the position-management half. While you hold, every price update runs the exit engine; signals appear in the exits panel sorted by urgency.</p>
+        <div class="kicker">4.3 — Doctrine Reference</div>
+        <h3>Exits — Your Job in v1</h3>
+        <p class="lede">The program doesn't manage exits in v1, but the rules it's built around are the ones to apply <strong>yourself</strong>, off Ross's doctrine and your own screen. (The exit engine code is in-tree, just not wired into the running app.)</p>
 
         <div class="rule good">
           <div class="rule-tag">Exit · First-profit scale-out + break-even stop</div>
-          <div class="rule-body">The cleanest hardwired rule: at the first profit target, <strong>sell a portion</strong>, then move the stop on the runner to <strong>break-even</strong>. The two fire together.</div>
+          <div class="rule-body">The cleanest hardwired rule in the course: at the first profit target, <strong>sell a portion</strong>, then move the stop on the runner to <strong>break-even</strong>.</div>
         </div>
         <div class="rule gate">
-          <div class="rule-tag">Exit · Every-tick catastrophic stop</div>
-          <div class="rule-body">The hard stop is checked on <strong>every</strong> price update (not a bar close), because these stocks move multiples of the stop width within a single bar. Once break-even is active, this same check enforces the break-even exit.</div>
-        </div>
-        <div class="rule">
-          <div class="rule-tag">Exit · Daily loss-cap / goal</div>
-          <div class="rule-body">Portfolio-level: escalates toward the cap, locks in at the goal.</div>
+          <div class="rule-tag">Exit · Catastrophic stop</div>
+          <div class="rule-body">Honor your hard stop <strong>immediately on the print</strong> — these stocks move multiples of the stop width within a single bar, so don't wait for a candle to close.</div>
         </div>
         <div class="rule">
           <div class="rule-tag">Exit · Discretionary signals</div>
-          <div class="rule-body">MACD flip, 9-EMA / 20-EMA / VWAP break, 50%-retrace give-back, 2-minute breakout-or-bailout, and the <strong>bear-pattern confirmations</strong> (double top, head-and-shoulders, top reversal, LOD break, bear flag) — used here as <em>exit</em> signals, consistent with long-only.</div>
+          <div class="rule-body">MACD flip, 9-EMA / VWAP break, 50%-retrace give-back, and the <strong>bear-pattern confirmations</strong> (double top, head-and-shoulders, top reversal, LOD break) as <em>exit</em> cues, consistent with long-only.</div>
         </div>
-      </section>
 
-      <section class="sec" id="s-sizing">
-        <div class="kicker">4.4 — How Big</div>
-        <h3>Position Sizing</h3>
-        <p class="lede">The recommended share count is <strong>risk-based</strong>, and it is <strong>advisory</strong> — it never blocks a trade.</p>
-        <div class="card">
-          <div class="card-h">The formula, roughly</div>
-          <p>Your per-trade <b>"barely-feel-it" loss ÷ the stop distance</b> — then <b>capped</b> at your full position size and <b>shrunk</b> by a quality-tier modifier and a cold-market modifier (<b>×0.70 in a cold regime</b>).</p>
-        </div>
         <div class="callout tip">
           <div class="ic">ℹ</div>
           <div>
-            <div class="ct-title">Sizing never gates</div>
-            <p>It informs the recommended share count, but a trade is never blocked on size.</p>
+            <div class="ct-title">In a future version these become live signals</div>
+            <p>The shelved exit engine emits all of the above as on-screen, urgency-ranked signals (with an alarm on a catastrophic stop). In v1 you run them by hand.</p>
           </div>
         </div>
       </section>
@@ -947,11 +915,11 @@ uv run python -u scripts/runtime_smoke_test.py   <span class="cmt"># boot the sc
         <div class="kicker">5.1 — The Loop</div>
         <h3>A Session, Start to Finish</h3>
         <div class="flow">
-          <div class="step"><div class="num">1</div><div class="stext"><b>Before the open:</b> start TWS/Gateway (if using IBKR) and <b>set your broker-side daily max-loss and max position size</b> (see §5.2 — do this every day, it's your real backstop). Launch the app. Glance at the dashboard to confirm your anchors loaded.</div></div>
+          <div class="step"><div class="num">1</div><div class="stext"><b>Before the open:</b> in <b>DAS Trader Pro</b>, set your <b>daily max-loss and max position / order size</b> (see §5.2 — do this every day, it's your real backstop). Open your charts and your <b>Level 2 + Time &amp; Sales</b>. Launch the app and glance at Market Conditions to confirm the regime and that your config loaded.</div></div>
           <div class="step"><div class="num">2</div><div class="stext"><b>Watch</b> the scanner board fill in and the recommendations feed.</div></div>
-          <div class="step"><div class="num">3</div><div class="stext"><b>On a PERMITTED recommendation you like:</b> place the trade <b>in your broker</b> at (or near) the suggested entry, with the suggested stop and size. On the Manual provider, <b>record the fill</b> so the exit engine starts managing the position.</div></div>
-          <div class="step"><div class="num">4</div><div class="stext"><b>Manage with the exits panel:</b> take the first-profit scale-out when it fires (and let the runner ride the break-even stop), and act <b>immediately</b> on a catastrophic-stop alarm.</div></div>
-          <div class="step"><div class="num">5</div><div class="stext"><b>Respect the risk dashboard:</b> if the loss-cap padlock engages, you're done adding for the day — the program stops permitting new entries.</div></div>
+          <div class="step"><div class="num">3</div><div class="stext"><b>On a PERMITTED recommendation you like:</b> <b>confirm it on Level 2 / the tape</b> (the app won't do this for you), then place the trade <b>in DAS</b> at (or near) the suggested entry, with the suggested stop, at a size you've chosen.</div></div>
+          <div class="step"><div class="num">4</div><div class="stext"><b>Manage the exit yourself</b> off Ross's rules: take the first-profit scale-out, move the runner's stop to break-even, and act <b>immediately</b> on a catastrophic stop. The program won't prompt these in v1.</div></div>
+          <div class="step"><div class="num">5</div><div class="stext"><b>Mind the regime:</b> in a deeply-cold regime the stand-aside banner is your cue to be more selective (A-setups, smallest size).</div></div>
           <div class="step"><div class="num">6</div><div class="stext"><b>Stop when you decide.</b> The program runs whenever you run it; there's no forced time window.</div></div>
         </div>
       </section>
@@ -959,34 +927,30 @@ uv run python -u scripts/runtime_smoke_test.py   <span class="cmt"># boot the sc
       <section class="sec" id="s-risk">
         <div class="kicker">5.2 — Guardrails</div>
         <h3>Risk Controls &amp; Guardrails</h3>
-        <p class="lede">In priority order — broker-enforced limits first, because in a "hijacked" emotional state a trader overrides in-app warnings.</p>
+        <p class="lede">In priority order — platform-enforced limits first, because in a "hijacked" emotional state a trader overrides in-app warnings.</p>
 
         <div class="rule gate">
           <div class="rule-tag">Priority 1 · Broker-side caps — your primary defense</div>
-          <div class="rule-body">Set a <strong>daily max-loss</strong> and a <strong>max position size</strong> directly in IBKR. <strong>Non-negotiable for live money.</strong> The broker must enforce the hard limits; the in-app padlock is a secondary layer.</div>
+          <div class="rule-body">Set a <strong>daily max-loss</strong> and a <strong>max position / order size</strong> directly in <strong>DAS Trader Pro</strong>. <strong>Non-negotiable.</strong> In v1 the app has no in-app loss padlock that actually fires — it can't see your P&amp;L — which makes the DAS-side caps the <em>only</em> enforced guardrail. Set them every day.</div>
         </div>
         <div class="rule">
-          <div class="rule-tag">Priority 2 · In-app daily loss-cap padlock</div>
-          <div class="rule-body">Blocks new entries once the cap is hit.</div>
+          <div class="rule-tag">Priority 2 · The universe pillars + room-to-run gate</div>
+          <div class="rule-body">Keep the program from ever surfacing a name that isn't a clean small-cap-momentum long with room above.</div>
         </div>
         <div class="rule">
-          <div class="rule-tag">Priority 3 · Scale-out + break-even stop</div>
-          <div class="rule-body">Takes risk off at first profit.</div>
+          <div class="rule-tag">Priority 3 · Your own exit discipline</div>
+          <div class="rule-body">Scale-out + break-even stop and the catastrophic stop, applied by hand (§4.3).</div>
         </div>
         <div class="rule">
-          <div class="rule-tag">Priority 4 · Every-tick catastrophic stop</div>
-          <div class="rule-body">The hard floor on every position.</div>
-        </div>
-        <div class="rule">
-          <div class="rule-tag">Priority 5 · Regime-aware sizing</div>
-          <div class="rule-body">Smaller in cold / round-trip-prone markets.</div>
+          <div class="rule-tag">Priority 4 · Regime awareness</div>
+          <div class="rule-body">Be smaller / more selective in cold or round-trip-prone markets.</div>
         </div>
 
         <div class="callout warn">
           <div class="ic">⚠</div>
           <div>
-            <div class="ct-title">Deferred guardrails</div>
-            <p>The <em>trader-rehab</em> state machine (auto-shrink after red streaks) and a <em>hijack-state</em> gate are documented in the doctrine but <b>not live</b>. Until they are, your broker-side caps cover that ground.</p>
+            <div class="ct-title">Shelved / deferred guardrails</div>
+            <p>The in-app <em>daily-loss-cap padlock</em>, the <em>trader-rehab</em> state machine, and a <em>hijack-state</em> gate exist in the codebase but are <b>not enforced in v1</b> (no live P&amp;L source). Until they are, your DAS-side caps cover that ground.</p>
           </div>
         </div>
       </section>
@@ -1001,7 +965,7 @@ uv run python -u scripts/runtime_smoke_test.py   <span class="cmt"># boot the sc
       <section class="sec" id="s-backtest">
         <div class="kicker">6.1 — Looking Back</div>
         <h3>The Backtest Harness</h3>
-        <p class="lede">An offline tool to approximate how the program <em>would have</em> performed on past pre-market sessions. It replays historical 1-minute bars through the <strong>same</strong> detectors, gates, sizing, and exit engine the live app uses.</p>
+        <p class="lede">An offline tool to approximate how the entry engine <em>would have</em> performed on past pre-market sessions. It replays historical 1-minute bars through the <strong>same</strong> detectors and gates the live app uses, and — to produce a P&amp;L estimate only — simulates a simple exit model that the live v1 app does <em>not</em> run.</p>
 
         <pre class="code"><span class="cmt"># last 5 trading sessions, 7-9am ET, default 0.20% slippage</span>
 uv run python -u scripts/backtest_premarket.py --days 5 --out report.md
@@ -1024,7 +988,7 @@ uv run python -u scripts/backtest_premarket.py --slippage-bps 35 --window 04:00-
           <div class="ic">⚠</div>
           <div>
             <div class="ct-title">It is an approximation — read it that way</div>
-            <p>It cannot model Level 2; true sub-second fills are coarsened to 1-minute bars (so fill prices carry real error — that's why there are three models); and the daily universe is reconstructed from each day's movers (so it can miss pre-market-only runners that faded). Read it as <b>"roughly green or red, which setups fired, how often stops vs. targets hit"</b> — not "you would have made exactly $X."</p>
+            <p>It cannot model Level 2; true sub-second fills are coarsened to 1-minute bars (so fill prices carry real error — that's why there are three models); and the daily universe is reconstructed from each day's movers (so it can miss pre-market-only runners that faded). Read it as <b>"roughly green or red, which setups fired, how often stops vs. targets hit"</b> — not "you would have made exactly $X" — and remember its exit model is a backtest convenience, not how you'll manage trades live.</p>
           </div>
         </div>
       </section>
@@ -1033,12 +997,13 @@ uv run python -u scripts/backtest_premarket.py --slippage-bps 35 --window 04:00-
         <div class="kicker">6.2 — Honest Accounting</div>
         <h3>Limitations &amp; What Is <em>Not</em> Built Yet</h3>
         <div class="grid g2">
+          <div class="card"><div class="card-h">Entry-only</div><p>No position / P&amp;L / account tracking, no exit management, and no on-screen sizing — you execute and manage manually in DAS.</p></div>
+          <div class="card"><div class="card-h">Level 2 is your eyes, not the program's</div><p>The app consumes no depth feed.</p></div>
+          <div class="card"><div class="card-h">No IBKR / no live broker connection</div><p>The account was closed; execution is manual.</p></div>
           <div class="card"><div class="card-h">No real-time Claude brain</div><p>Deterministic rules produce the recommendations today.</p></div>
-          <div class="card"><div class="card-h">Bar-close, not sub-second</div><p>Entries / most exits evaluate on 1-minute closes (the catastrophic stop is per-tick on the live path); the print-trigger feed isn't wired.</p></div>
-          <div class="card"><div class="card-h">Hijack / rehab gates not live</div><p>Rely on broker-side caps.</p></div>
+          <div class="card"><div class="card-h">Bar-close, not sub-second</div><p>Entries evaluate on 1-minute closes; the print-trigger feed isn't wired.</p></div>
           <div class="card"><div class="card-h">News pillar disabled</div><p>Four pillars carry the scan.</p></div>
-          <div class="card"><div class="card-h">Level 2 proxied</div><p>Setups that doctrine says need tape run on bar structure.</p></div>
-          <div class="card"><div class="card-h">Exits least live-validated</div><p>Unit-tested and internally consistent, but the least real-market exposure. Watch them closely on your first live mornings.</p></div>
+          <div class="card"><div class="card-h">In-app loss-cap / rehab / hijack gates not enforced</div><p>Rely on broker-side caps.</p></div>
         </div>
       </section>
 
@@ -1051,7 +1016,8 @@ uv run python -u scripts/backtest_premarket.py --slippage-bps 35 --window 04:00-
             <tbody>
               <tr><td>Spurious <code class="inl">ZoneInfoNotFound</code> errors</td><td><b>Always use <code class="inl">uv run</code></b> — bare <code class="inl">python</code> lacks <code class="inl">tzdata</code>.</td></tr>
               <tr><td>Scanner empty / "waiting for first scan"</td><td>Check <code class="inl">massive.api_key</code> is set and not the placeholder. Off-hours the board shows the prior session's gainers.</td></tr>
-              <tr><td>IBKR disconnect banner</td><td>TWS/Gateway isn't running, or the port/client_id is wrong. The app auto-reconnects when it returns.</td></tr>
+              <tr><td>Float shows as shares-outstanding, not true float</td><td><code class="inl">fmp.api_key</code> is missing or the name's float isn't in FMP's filings yet — the scanner falls back to the SO upper bound and marks the float pillar <em>needs-confirmation</em>.</td></tr>
+              <tr><td>A recommendation you expected was suppressed</td><td>Check the <em>Suppressed today</em> sidebar for the named gate reason; a common one in v1 is the <b>room-to-run</b> gate (entry too close to overhead resistance).</td></tr>
               <tr><td>Config change not taking effect</td><td>A malformed <code class="inl">user.yaml</code> is rejected and the previous config kept — check the console for a WARN line.</td></tr>
               <tr><td>Verify the install</td><td><code class="inl">uv run pytest</code> runs the full test suite.</td></tr>
             </tbody>
@@ -1068,14 +1034,14 @@ uv run python -u scripts/backtest_premarket.py --slippage-bps 35 --window 04:00-
             <tbody>
               <tr><td class="mono">CLAUDE.md</td><td>The authoritative engineering reference &amp; invariants.</td></tr>
               <tr><td class="mono">config/schema.example.yaml</td><td>Config field reference (copy to <code class="inl">user.yaml</code>).</td></tr>
-              <tr><td class="mono">app/main.py</td><td>Launch entry point &amp; provider picker.</td></tr>
-              <tr><td class="mono">app/runtime.py</td><td>The live scan → detect → gate → exit engine.</td></tr>
-              <tr><td class="mono">app/gates/</td><td>Hard gates (<code class="inl">composite.py</code>) and cautions (<code class="inl">cautions.py</code>).</td></tr>
+              <tr><td class="mono">app/main.py</td><td>Launch entry point &amp; runtime wiring.</td></tr>
+              <tr><td class="mono">app/runtime.py</td><td>The live scan → detect → gate → recommend engine.</td></tr>
+              <tr><td class="mono">app/gates/</td><td>Hard gates (<code class="inl">composite.py</code>, incl. <code class="inl">room_to_run_gate.py</code>) and cautions (<code class="inl">cautions.py</code>).</td></tr>
               <tr><td class="mono">app/detectors/</td><td>The entry-setup recognizers.</td></tr>
-              <tr><td class="mono">app/exits/</td><td>The exit-trigger roster.</td></tr>
-              <tr><td class="mono">app/sizing/ · app/scanner/ · app/monitor/</td><td>Sizing, scan/vendors, exit orchestration.</td></tr>
+              <tr><td class="mono">app/scanner/</td><td>The scan + vendors (<code class="inl">client.py</code> Massive, <code class="inl">fmp_client.py</code> float, <code class="inl">sec_client.py</code> country).</td></tr>
               <tr><td class="mono">app/web/</td><td>The UI (<code class="inl">index.html</code>, <code class="inl">main.js</code>, <code class="inl">styles.css</code>).</td></tr>
               <tr><td class="mono">app/backtest/ + scripts/backtest_premarket.py</td><td>The backtest harness.</td></tr>
+              <tr><td class="mono">app/exits/ · app/sizing/ · app/providers/</td><td>The <b>shelved</b> exit / sizing / P&amp;L subsystems (in-tree, not wired into v1).</td></tr>
               <tr><td class="mono">playbook/</td><td>The machine-readable distillation of Ross's course (the strategy source-of-truth).</td></tr>
               <tr><td class="mono">Claude Code Session Handoff Documents/</td><td>Cross-session status; read the most recent first.</td></tr>
             </tbody>
@@ -1085,7 +1051,7 @@ uv run python -u scripts/backtest_premarket.py --slippage-bps 35 --window 04:00-
 
       <div class="footer">
         <p class="big">"Reduce risk first — then generally follow the strategy."</p>
-        <p>This guide describes the Warrior Trading Assistant as built in Phase 3 (runtime app). It is an explanation of how a personal tool works — not financial advice, not a recommendation, and not a guarantee of any result. The program proposes; you execute. Trading small-cap stocks carries substantial risk of loss. <b>Last updated: 2026-05-31.</b></p>
+        <p>This guide describes the Warrior Trading Assistant as built in Phase 3 (runtime app), v1 entry-recommendations-only scope. It is an explanation of how a personal tool works — not financial advice, not a recommendation, and not a guarantee of any result. The program proposes the entry; you execute and manage every trade yourself in DAS Trader Pro. Trading small-cap stocks carries substantial risk of loss. <b>Last updated: 2026-06-03.</b></p>
       </div>
 
     </div><!-- /.wrap -->
